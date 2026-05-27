@@ -1,1006 +1,237 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"
-    />
-    <meta name="theme-color" content="#111318" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <title>PDV</title>
-    <link rel="stylesheet" href="css/styles.css" />
-    <link rel="icon" type="image/png" href="./image/logo-favicon.png" />
-    <style>
-      .cmd-card-ativa {
-        box-shadow: 0 0 0 2px var(--brand) !important;
-      }
-    </style>
-  </head>
-  <body>
-    <aside class="sidebar" id="sidebar">
-      <button class="sb-toggle" id="sbToggle" title="Recolher">
-        <svg
-          width="11"
-          height="11"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.5"
-        >
-          <polyline points="15 18 9 12 15 6" />
-        </svg>
-      </button>
-      <div class="sidebar-brand">
-        <div class="sb-logo-wrap">
-          <img
-            src="./image/logo.png"
-            alt="HELIVI"
-            onerror="
-              this.style.display = 'none';
-              this.nextElementSibling.style.display = 'flex';
-            "
-          />
-          <div class="sb-logo-fallback">H</div>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="theme-color" content="#111318">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>HELIVI — PDV</title>
+<link rel="stylesheet" href="css/styles.css">
+<style>
+.cmd-card-ativa { box-shadow: 0 0 0 2px var(--brand) !important; }
+</style>
+</head>
+<body>
+<aside class="sidebar" id="sidebar">
+  <button class="sb-toggle" id="sbToggle" title="Recolher"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
+  <div class="sidebar-brand">
+    <div class="sb-logo-wrap">
+      <img src="./image/HELIVI.png" alt="HELIVI" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div class="sb-logo-fallback">H</div>
+    </div>
+    <div class="sb-brand-text">
+      <div class="sb-brand-name">HELIVI</div>
+      <div class="sb-brand-sub">PDV System</div>
+    </div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-section">Menu principal</div>
+    <a href="dashboard.html" class="sb-link on" data-tip="PDV"><span class="sb-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg></span><span class="sb-label">PDV</span></a>
+    <a href="produtos.html" class="sb-link" data-tip="Produtos"><span class="sb-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span><span class="sb-label">Produtos</span></a>
+    <a href="historico.html" class="sb-link" data-tip="Histórico"><span class="sb-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></span><span class="sb-label">Histórico</span></a>
+    <a href="lucro.html" class="sb-link" data-tip="Lucro"><span class="sb-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span><span class="sb-label">Lucro</span></a>
+    <div class="sb-sep"></div>
+    <div class="sb-section">Módulos</div>
+    <a href="cozinha.html" class="sb-link" data-tip="Cozinha"><span class="sb-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M6 13.87A4 4 0 017.41 6a5.11 5.11 0 0111.18 0A4 4 0 0118 13.87V21H6z"/><line x1="6" y1="17" x2="18" y2="17"/></svg></span><span class="sb-label">Cozinha</span></a>
+    <a href="balcao.html" class="sb-link" data-tip="Balcão de Bebidas"><span class="sb-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M8 22h8"/><path d="M12 11v11"/><path d="M4 6l2 12h12L20 6H4z"/></svg></span><span class="sb-label">Balcão de Bebidas</span></a>
+    <a href="usuarios.html" class="sb-link" data-tip="Colaboradores"><span class="sb-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span><span class="sb-label">Colaboradores</span></a>
+  </nav>
+  <div class="sb-footer">
+    <a href="config.html" class="sb-link" data-tip="Configurações"><span class="sb-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06-.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span><span class="sb-label">Configurações</span></a>
+    <button class="sb-link" id="btnLogout" data-tip="Sair"><span class="sb-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span><span class="sb-label">Sair</span></button>
+  </div>
+</aside>
+<div class="main">
+  <header class="topbar">
+    <button class="topbar-menu" id="topbarMenu"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    <div class="topbar-info">
+      <div class="topbar-title"  id='nomeTopbar'>PDV</div>
+      <div class='topbar-sub' id='topbarSub'></div>
+    </div>
+    <div class="topbar-user">
+      <div class="topbar-avatar" id="topbarAvatar">?</div>
+      <span class="topbar-name" id="topbarName"></span>
+      <span class="badge b-org" id="topbarPerfilBadge" style="display:none;font-size:10px"></span>
+    </div>
+  </header>
+  <div class="pdv-wrap">
+    <!-- ESQUERDA -->
+    <div class="pdv-left">
+      <div class="pdv-tabs">
+        <button class="pdv-tab on" id="tabProd"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Produtos</button>
+        <button class="pdv-tab" id="tabCmd"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Comandas hoje <span class="tab-n" id="tabCount">0</span></button>
+      </div>
+      <!-- VIEW PRODUTOS -->
+      <div id="viewProd" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+        <div class="srch-bar">
+          <div class="srch-wrap"><span class="si"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input class="input" type="text" id="buscaPDV" placeholder="Buscar produto..."></div>
         </div>
-        <div class="sb-brand-text">
-          <div class="sb-brand-name">HELIVI</div>
-          <div class="sb-brand-sub">PDV System</div>
+        <div class="cats-bar" id="catBar"></div>
+        <div class="prods-view" id="prodsGrid">
+          <div class="loading-box"><div class="spin-d"></div><span>Carregando produtos...</span></div>
         </div>
       </div>
-      <nav class="sb-nav">
-        <div class="sb-section">Menu principal</div>
-        <a href="dashboard.html" class="sb-link on" data-tip="PDV"
-          ><span class="sb-icon"
-            ><svg
-              width="17"
-              height="17"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.75"
-            >
-              <circle cx="9" cy="21" r="1" />
-              <circle cx="20" cy="21" r="1" />
-              <path
-                d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"
-              /></svg></span
-          ><span class="sb-label">PDV</span></a
-        >
-        <a href="produtos.html" class="sb-link" data-tip="Produtos"
-          ><span class="sb-icon"
-            ><svg
-              width="17"
-              height="17"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.75"
-            >
-              <line x1="16.5" y1="9.4" x2="7.5" y2="4.21" />
-              <path
-                d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"
-              />
-              <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-              <line x1="12" y1="22.08" x2="12" y2="12" /></svg></span
-          ><span class="sb-label">Produtos</span></a
-        >
-        <a href="historico.html" class="sb-link" data-tip="Histórico"
-          ><span class="sb-icon"
-            ><svg
-              width="17"
-              height="17"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.75"
-            >
-              <polyline points="6 9 6 2 18 2 18 9" />
-              <path
-                d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"
-              />
-              <rect x="6" y="14" width="12" height="8" /></svg></span
-          ><span class="sb-label">Histórico</span></a
-        >
-        <a href="lucro.html" class="sb-link" data-tip="Lucro"
-          ><span class="sb-icon"
-            ><svg
-              width="17"
-              height="17"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.75"
-            >
-              <line x1="12" y1="20" x2="12" y2="10" />
-              <line x1="18" y1="20" x2="18" y2="4" />
-              <line x1="6" y1="20" x2="6" y2="16" /></svg></span
-          ><span class="sb-label">Lucro</span></a
-        >
-        <div class="sb-sep"></div>
-        <div class="sb-section">Módulos</div>
-        <a href="cozinha.html" class="sb-link" data-tip="Cozinha"
-          ><span class="sb-icon"
-            ><svg
-              width="17"
-              height="17"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.75"
-            >
-              <path
-                d="M6 13.87A4 4 0 017.41 6a5.11 5.11 0 0111.18 0A4 4 0 0118 13.87V21H6z"
-              />
-              <line x1="6" y1="17" x2="18" y2="17" /></svg></span
-          ><span class="sb-label">Cozinha</span></a
-        >
-        <a href="balcao.html" class="sb-link" data-tip="Balcão de Bebidas"
-          ><span class="sb-icon"
-            ><svg
-              width="17"
-              height="17"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.75"
-            >
-              <path d="M8 22h8" />
-              <path d="M12 11v11" />
-              <path d="M4 6l2 12h12L20 6H4z" /></svg></span
-          ><span class="sb-label">Balcão de Bebidas</span></a
-        >
-        <a href="usuarios.html" class="sb-link" data-tip="Colaboradores"
-          ><span class="sb-icon"
-            ><svg
-              width="17"
-              height="17"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.75"
-            >
-              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M23 21v-2a4 4 0 00-3-3.87" />
-              <path d="M16 3.13a4 4 0 010 7.75" /></svg></span
-          ><span class="sb-label">Colaboradores</span></a
-        >
-      </nav>
-      <div class="sb-footer">
-        <a href="config.html" class="sb-link" data-tip="Configurações"
-          ><span class="sb-icon"
-            ><svg
-              width="17"
-              height="17"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.75"
-            >
-              <circle cx="12" cy="12" r="3" />
-              <path
-                d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06-.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"
-              /></svg></span
-          ><span class="sb-label">Configurações</span></a
-        >
-        <button class="sb-link" id="btnLogout" data-tip="Sair">
-          <span class="sb-icon"
-            ><svg
-              width="17"
-              height="17"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.75"
-            >
-              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" /></svg></span
-          ><span class="sb-label">Sair</span>
-        </button>
+      <!-- VIEW COMANDAS -->
+      <div id="viewCmd" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+
+        <!-- Toolbar -->
+        <div style="padding:10px 16px;background:var(--bg-card);border-bottom:1px solid var(--brd);display:flex;gap:9px;align-items:center;flex-shrink:0">
+          <button class="btn btn-primary btn-sm" id="btnNovaComanda" style="flex-shrink:0;gap:6px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nova Comanda
+          </button>
+          <div style="position:relative;flex:1">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--t5);display:flex;pointer-events:none">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </span>
+            <input class="input" type="text" id="buscaComanda" placeholder="Buscar por nome, mesa ou número..." style="padding-left:32px;font-size:13px">
+          </div>
+        </div>
+
+        <!-- Formulário Nova Comanda -->
+        <div id="novaComandaForm" style="display:none;background:var(--bg-card);border-bottom:2px solid var(--brand);padding:16px 18px;flex-shrink:0">
+          <div style="font-size:14px;font-weight:700;color:var(--t1);margin-bottom:14px;display:flex;align-items:center;gap:8px">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+            Abrir Nova Comanda
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 100px;gap:10px;margin-bottom:10px">
+            <div class="field" style="margin:0">
+              <label>Cliente (opcional)</label>
+              <input class="input" type="text" id="ncCliente" placeholder="Ex: João Silva" maxlength="50">
+            </div>
+            <div class="field" style="margin:0">
+              <label>Mesa</label>
+              <input class="input" type="text" id="ncMesa" placeholder="Ex: 5" maxlength="10">
+            </div>
+          </div>
+          <div class="field" style="margin-bottom:12px">
+            <label>Observação (opcional)</label>
+            <input class="input" type="text" id="ncObs" placeholder="Ex: sem glúten, alergia a camarão..." maxlength="120">
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary btn-sm" id="btnCriarComanda" style="gap:6px">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Abrir Comanda
+            </button>
+            <button class="btn btn-ghost btn-sm" id="btnCancelarComanda">Cancelar</button>
+          </div>
+        </div>
+
+        <!-- Filtros de status -->
+        <div style="display:flex;gap:6px;padding:8px 16px;background:var(--bg-card);border-bottom:1px solid var(--brd);overflow-x:auto;flex-shrink:0">
+          <button class="filt-btn on" data-st="todos">Todas</button>
+          <button class="filt-btn" data-st="aberta">Abertas</button>
+          <button class="filt-btn" data-st="pago">Fechadas</button>
+        </div>
+
+        <!-- Lista de Comandas -->
+        <div class="cmds-view" id="listaComandas" style="flex:1;overflow-y:auto;padding:12px 16px">
+          <div class="loading-box"><div class="spin-d"></div><span>Carregando...</span></div>
+        </div>
+
       </div>
-    </aside>
-    <div class="main">
-      <header class="topbar">
-        <button class="topbar-menu" id="topbarMenu">
-          <svg
-            width="17"
-            height="17"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <line x1="3" y1="12" x2="21" y2="12" />
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <line x1="3" y1="18" x2="21" y2="18" />
-          </svg>
-        </button>
-        <div class="topbar-info">
-          <div class="topbar-title" id="nomeTopbar">PDV</div>
-          <div class="topbar-sub" id="topbarSub"></div>
+    </div>
+
+    <!-- CARRINHO -->
+    <div class="pdv-right">
+      <div class="cart-handle" id="cartHandle"></div>
+      <div class="cart-hd">
+        <div class="cart-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg> Pedido <span class="cart-badge" id="cartBadge">0</span></div>
+        <button class="btn btn-ghost btn-sm" id="btnLimpar"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg> Limpar</button>
+      </div>
+      <div class="id-row">
+        <input class="input" type="text" id="inCliente" placeholder="Nome do cliente (opcional)">
+        <input class="input" type="text" id="inMesa"    placeholder="Mesa">
+      </div>
+      <!-- Banner comanda ativa -->
+      <div id="cartComandaBanner" style="display:none;padding:6px 14px 0;flex-shrink:0"></div>
+
+      <div class="obs-row">
+        <button class="obs-tog" id="btnObsTog"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Observação do pedido</button>
+        <div class="obs-wrap" id="obsWrap"><textarea class="input" id="inObs" placeholder="Ex: sem cebola, sem glúten..."></textarea></div>
+      </div>
+      <div class="cart-body" id="cartBody">
+        <div class="cart-empty"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg><div class="cart-empty-txt">Carrinho vazio</div></div>
+      </div>
+      <div class="cart-foot">
+        <div class="tot-row tot-main">
+          <span class="tot-l">Total</span>
+          <span class="tot-v" id="cartTotal">R$&nbsp;0,00</span>
         </div>
-        <div class="topbar-user">
-          <div class="topbar-avatar" id="topbarAvatar">?</div>
-          <span class="topbar-name" id="topbarName"></span>
-          <span
-            class="badge b-org"
-            id="topbarPerfilBadge"
-            style="display: none; font-size: 10px"
-          ></span>
+      </div>
+      <div class="pay-area" id="payAreaWrap">
+        <div class="pay-lbl">Forma de Pagamento</div>
+        <div class="pay-grid">
+          <button class="pay-btn" data-tipo="dinheiro"  data-label="Dinheiro"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg><span>Dinheiro</span></button>
+          <button class="pay-btn" data-tipo="pix"       data-label="PIX"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg><span>PIX</span></button>
+          <button class="pay-btn" data-tipo="credito"   data-label="Crédito"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg><span>Crédito</span></button>
+          <button class="pay-btn" data-tipo="debito"    data-label="Débito"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg><span>Débito</span></button>
+          <button class="pay-btn" data-tipo="vale"      data-label="Vale Refeição"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>Vale</span></button>
+          <button class="pay-btn" data-tipo="fiado"     data-label="Fiado"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span>Fiado</span></button>
         </div>
-      </header>
-      <div class="pdv-wrap">
-        <!-- ESQUERDA -->
-        <div class="pdv-left">
-          <div class="pdv-tabs">
-            <button class="pdv-tab on" id="tabProd">
-              <svg
-                width="17"
-                height="17"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.75"
-              >
-                <line x1="16.5" y1="9.4" x2="7.5" y2="4.21" />
-                <path
-                  d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"
-                />
-                <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-                <line x1="12" y1="22.08" x2="12" y2="12" />
-              </svg>
-              Produtos
-            </button>
-            <button class="pdv-tab" id="tabCmd">
-              <svg
-                width="17"
-                height="17"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.75"
-              >
-                <polyline points="6 9 6 2 18 2 18 9" />
-                <path
-                  d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"
-                />
-                <rect x="6" y="14" width="12" height="8" />
-              </svg>
-              Comandas hoje <span class="tab-n" id="tabCount">0</span>
-            </button>
+        <!-- CRÉDITO -->
+        <div class="cred-box" id="credBox">
+          <div class="cred-tabs">
+            <button class="cred-tab on" data-m="um">1 Cartão</button>
+            <button class="cred-tab"     data-m="dois">2 Cartões</button>
           </div>
-          <!-- VIEW PRODUTOS -->
-          <div
-            id="viewProd"
-            style="
-              display: flex;
-              flex-direction: column;
-              flex: 1;
-              overflow: hidden;
-            "
-          >
-            <div class="srch-bar">
-              <div class="srch-wrap">
-                <span class="si"
-                  ><svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.75"
-                  >
-                    <circle cx="11" cy="11" r="8" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" /></svg></span
-                ><input
-                  class="input"
-                  type="text"
-                  id="buscaPDV"
-                  placeholder="Buscar produto..."
-                />
-              </div>
-            </div>
-            <div class="cats-bar" id="catBar"></div>
-            <div class="prods-view" id="prodsGrid">
-              <div class="loading-box">
-                <div class="spin-d"></div>
-                <span>Carregando produtos...</span>
-              </div>
+          <div id="parcsWrap">
+            <div style="font-size:10px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px">Parcelamento</div>
+            <div class="parcs">
+              <button class="parc" data-p="À vista">À vista</button>
+              <button class="parc" data-p="2x">2x</button><button class="parc" data-p="3x">3x</button>
+              <button class="parc" data-p="4x">4x</button><button class="parc" data-p="5x">5x</button>
+              <button class="parc" data-p="6x">6x</button><button class="parc" data-p="10x">10x</button>
+              <button class="parc" data-p="12x">12x</button>
             </div>
           </div>
-          <!-- VIEW COMANDAS -->
-          <div
-            id="viewCmd"
-            style="
-              display: none;
-              flex-direction: column;
-              flex: 1;
-              overflow: hidden;
-            "
-          >
-            <!-- Toolbar -->
-            <div
-              style="
-                padding: 10px 16px;
-                background: var(--bg-card);
-                border-bottom: 1px solid var(--brd);
-                display: flex;
-                gap: 9px;
-                align-items: center;
-                flex-shrink: 0;
-              "
-            >
-              <button
-                class="btn btn-primary btn-sm"
-                id="btnNovaComanda"
-                style="flex-shrink: 0; gap: 6px"
-              >
-                <svg
-                  width="13"
-                  height="13"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.5"
-                >
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                Nova Comanda
-              </button>
-              <div style="position: relative; flex: 1">
-                <span
-                  style="
-                    position: absolute;
-                    left: 10px;
-                    top: 50%;
-                    transform: translateY(-50%);
-                    color: var(--t5);
-                    display: flex;
-                    pointer-events: none;
-                  "
-                >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.75"
-                  >
-                    <circle cx="11" cy="11" r="8" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                  </svg>
-                </span>
-                <input
-                  class="input"
-                  type="text"
-                  id="buscaComanda"
-                  placeholder="Buscar por nome, mesa ou número..."
-                  style="padding-left: 32px; font-size: 13px"
-                />
-              </div>
-            </div>
-
-            <!-- Formulário Nova Comanda -->
-            <div
-              id="novaComandaForm"
-              style="
-                display: none;
-                background: var(--bg-card);
-                border-bottom: 2px solid var(--brand);
-                padding: 16px 18px;
-                flex-shrink: 0;
-              "
-            >
-              <div
-                style="
-                  font-size: 14px;
-                  font-weight: 700;
-                  color: var(--t1);
-                  margin-bottom: 14px;
-                  display: flex;
-                  align-items: center;
-                  gap: 8px;
-                "
-              >
-                <svg
-                  width="15"
-                  height="15"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="var(--brand)"
-                  stroke-width="2"
-                >
-                  <path
-                    d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"
-                  />
-                  <polyline points="14 2 14 8 20 8" />
-                  <line x1="16" y1="13" x2="8" y2="13" />
-                </svg>
-                Abrir Nova Comanda
-              </div>
-              <div
-                style="
-                  display: grid;
-                  grid-template-columns: 1fr 100px;
-                  gap: 10px;
-                  margin-bottom: 10px;
-                "
-              >
-                <div class="field" style="margin: 0">
-                  <label>Cliente (opcional)</label>
-                  <input
-                    class="input"
-                    type="text"
-                    id="ncCliente"
-                    placeholder="Ex: João Silva"
-                    maxlength="50"
-                  />
-                </div>
-                <div class="field" style="margin: 0">
-                  <label>Mesa</label>
-                  <input
-                    class="input"
-                    type="text"
-                    id="ncMesa"
-                    placeholder="Ex: 5"
-                    maxlength="10"
-                  />
-                </div>
-              </div>
-              <div class="field" style="margin-bottom: 12px">
-                <label>Observação (opcional)</label>
-                <input
-                  class="input"
-                  type="text"
-                  id="ncObs"
-                  placeholder="Ex: sem glúten, alergia a camarão..."
-                  maxlength="120"
-                />
-              </div>
-              <div style="display: flex; gap: 8px">
-                <button
-                  class="btn btn-primary btn-sm"
-                  id="btnCriarComanda"
-                  style="gap: 6px"
-                >
-                  <svg
-                    width="13"
-                    height="13"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2.5"
-                  >
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                  Abrir Comanda
-                </button>
-                <button class="btn btn-ghost btn-sm" id="btnCancelarComanda">
-                  Cancelar
-                </button>
-              </div>
-            </div>
-
-            <!-- Filtros de status -->
-            <div
-              style="
-                display: flex;
-                gap: 6px;
-                padding: 8px 16px;
-                background: var(--bg-card);
-                border-bottom: 1px solid var(--brd);
-                overflow-x: auto;
-                flex-shrink: 0;
-              "
-            >
-              <button class="filt-btn on" data-st="todos">Todas</button>
-              <button class="filt-btn" data-st="aberta">Abertas</button>
-              <button class="filt-btn" data-st="pago">Fechadas</button>
-            </div>
-
-            <!-- Lista de Comandas -->
-            <div
-              class="cmds-view"
-              id="listaComandas"
-              style="flex: 1; overflow-y: auto; padding: 12px 16px"
-            >
-              <div class="loading-box">
-                <div class="spin-d"></div>
-                <span>Carregando...</span>
-              </div>
-            </div>
+          <div class="dois-cart" id="doisCartWrap">
+            <div style="font-size:10px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Dividir entre 2 cartões</div>
+            <div class="cart-row"><span class="cart-lbl">Cartão 1 (R$)</span><input class="input" style="padding:7px 9px;font-size:12px" type="number" id="cartao1In" placeholder="0,00" step="0.01" min="0"></div>
+            <div class="rest-box"><span class="rest-l" id="restLbl">Restante Cartão 2:</span><span class="rest-v" id="restVal">R$&nbsp;0,00</span></div>
           </div>
         </div>
-
-        <!-- CARRINHO -->
-        <div class="pdv-right">
-          <div class="cart-hd">
-            <div class="cart-title">
-              <svg
-                width="17"
-                height="17"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.75"
-              >
-                <circle cx="9" cy="21" r="1" />
-                <circle cx="20" cy="21" r="1" />
-                <path
-                  d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"
-                />
-              </svg>
-              Pedido <span class="cart-badge" id="cartBadge">0</span>
-            </div>
-            <button class="btn btn-ghost btn-sm" id="btnLimpar">
-              <svg
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <polyline points="3 6 5 6 21 6" />
-                <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
-                <path d="M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" />
-              </svg>
-              Limpar
-            </button>
+        <!-- PIX -->
+        <div class="pix-box" id="pixBox">
+          <div style="font-size:11px;color:var(--t4);margin-bottom:10px">Escaneie o QR Code ou copie a chave</div>
+          <div class="pix-qr" id="pixQRDisp"></div>
+          <div class="pix-chave" id="pixChaveDisp">—</div>
+          <div class="pix-val" id="pixVal">R$&nbsp;0,00</div>
+          <div class="pix-st wait" id="pixSt">⏳ Aguardando pagamento...</div>
+          <button class="btn btn-ok btn-full" style="margin-top:10px" id="btnPixOk"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Confirmar Recebimento</button>
+        </div>
+      </div>
+      <!-- Botão sempre visível na parte inferior -->
+      <div id="cartFooterAction" style="padding:12px 14px;border-top:1px solid var(--brd);flex-shrink:0;background:var(--bg-card)">
+        <button class="btn btn-ok btn-full btn-xl" id="btnFinalizar" disabled><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Finalizar Pedido</button>
+        <div class="pos-done" id="posDone">
+          <div class="pos-ok-txt"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Pedido salvo!</div>
+          <div class="pos-btns">
+            <button class="btn btn-ghost btn-full btn-sm" id="btnImprimir"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Imprimir</button>
+            <button class="btn btn-ghost btn-full btn-sm" id="btnWhatsApp" style="border-color:#25D366;color:#25D366"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg> WhatsApp</button>
           </div>
-          <div class="id-row">
-            <input
-              class="input"
-              type="text"
-              id="inCliente"
-              placeholder="Nome do cliente (opcional)"
-            />
-            <input class="input" type="text" id="inMesa" placeholder="Mesa" />
-          </div>
-          <!-- Banner comanda ativa -->
-          <div
-            id="cartComandaBanner"
-            style="display: none; padding: 6px 14px 0; flex-shrink: 0"
-          ></div>
-
-          <div class="obs-row">
-            <button class="obs-tog" id="btnObsTog">
-              <svg
-                width="13"
-                height="13"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path
-                  d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"
-                />
-                <polyline points="14 2 14 8 20 8" />
-                <line x1="16" y1="13" x2="8" y2="13" />
-                <line x1="16" y1="17" x2="8" y2="17" />
-              </svg>
-              Observação do pedido
-            </button>
-            <div class="obs-wrap" id="obsWrap">
-              <textarea
-                class="input"
-                id="inObs"
-                placeholder="Ex: sem cebola, sem glúten..."
-              ></textarea>
-            </div>
-          </div>
-          <div class="cart-body" id="cartBody">
-            <div class="cart-empty">
-              <svg
-                width="17"
-                height="17"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.75"
-              >
-                <circle cx="9" cy="21" r="1" />
-                <circle cx="20" cy="21" r="1" />
-                <path
-                  d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"
-                />
-              </svg>
-              <div class="cart-empty-txt">Carrinho vazio</div>
-            </div>
-          </div>
-          <div class="cart-foot">
-            <div class="tot-row tot-main">
-              <span class="tot-l">Total</span>
-              <span class="tot-v" id="cartTotal">R$&nbsp;0,00</span>
-            </div>
-          </div>
-          <div class="pay-area" id="payAreaWrap">
-            <div class="pay-lbl">Forma de Pagamento</div>
-            <div class="pay-grid">
-              <button
-                class="pay-btn"
-                data-tipo="dinheiro"
-                data-label="Dinheiro"
-              >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.75"
-                >
-                  <line x1="12" y1="1" x2="12" y2="23" />
-                  <path
-                    d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"
-                  /></svg
-                ><span>Dinheiro</span>
-              </button>
-              <button class="pay-btn" data-tipo="pix" data-label="PIX">
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.75"
-                >
-                  <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
-                  <line x1="12" y1="18" x2="12.01" y2="18" /></svg
-                ><span>PIX</span>
-              </button>
-              <button class="pay-btn" data-tipo="credito" data-label="Crédito">
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.75"
-                >
-                  <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
-                  <line x1="1" y1="10" x2="23" y2="10" /></svg
-                ><span>Crédito</span>
-              </button>
-              <button class="pay-btn" data-tipo="debito" data-label="Débito">
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.75"
-                >
-                  <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
-                  <line x1="1" y1="10" x2="23" y2="10" /></svg
-                ><span>Débito</span>
-              </button>
-              <button
-                class="pay-btn"
-                data-tipo="vale"
-                data-label="Vale Refeição"
-              >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.75"
-                >
-                  <path
-                    d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"
-                  />
-                  <polyline points="14 2 14 8 20 8" /></svg
-                ><span>Vale</span>
-              </button>
-              <button class="pay-btn" data-tipo="fiado" data-label="Fiado">
-                <svg
-                  width="13"
-                  height="13"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path
-                    d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"
-                  />
-                  <polyline points="14 2 14 8 20 8" />
-                  <line x1="16" y1="13" x2="8" y2="13" />
-                  <line x1="16" y1="17" x2="8" y2="17" /></svg
-                ><span>Fiado</span>
-              </button>
-            </div>
-            <!-- CRÉDITO -->
-            <div class="cred-box" id="credBox">
-              <div class="cred-tabs">
-                <button class="cred-tab on" data-m="um">1 Cartão</button>
-                <button class="cred-tab" data-m="dois">2 Cartões</button>
-              </div>
-              <div id="parcsWrap">
-                <div
-                  style="
-                    font-size: 10px;
-                    font-weight: 700;
-                    color: var(--t4);
-                    text-transform: uppercase;
-                    letter-spacing: 0.6px;
-                    margin-bottom: 7px;
-                  "
-                >
-                  Parcelamento
-                </div>
-                <div class="parcs">
-                  <button class="parc" data-p="À vista">À vista</button>
-                  <button class="parc" data-p="2x">2x</button
-                  ><button class="parc" data-p="3x">3x</button>
-                  <button class="parc" data-p="4x">4x</button
-                  ><button class="parc" data-p="5x">5x</button>
-                  <button class="parc" data-p="6x">6x</button
-                  ><button class="parc" data-p="10x">10x</button>
-                  <button class="parc" data-p="12x">12x</button>
-                </div>
-              </div>
-              <div class="dois-cart" id="doisCartWrap">
-                <div
-                  style="
-                    font-size: 10px;
-                    font-weight: 700;
-                    color: var(--t4);
-                    text-transform: uppercase;
-                    letter-spacing: 0.6px;
-                    margin-bottom: 8px;
-                  "
-                >
-                  Dividir entre 2 cartões
-                </div>
-                <div class="cart-row">
-                  <span class="cart-lbl">Cartão 1 (R$)</span
-                  ><input
-                    class="input"
-                    style="padding: 7px 9px; font-size: 12px"
-                    type="number"
-                    id="cartao1In"
-                    placeholder="0,00"
-                    step="0.01"
-                    min="0"
-                  />
-                </div>
-                <div class="rest-box">
-                  <span class="rest-l" id="restLbl">Restante Cartão 2:</span
-                  ><span class="rest-v" id="restVal">R$&nbsp;0,00</span>
-                </div>
-              </div>
-            </div>
-            <!-- PIX -->
-            <div class="pix-box" id="pixBox">
-              <div
-                style="font-size: 11px; color: var(--t4); margin-bottom: 10px"
-              >
-                Escaneie o QR Code ou copie a chave
-              </div>
-              <div class="pix-qr" id="pixQRDisp"></div>
-              <div class="pix-chave" id="pixChaveDisp">—</div>
-              <div class="pix-val" id="pixVal">R$&nbsp;0,00</div>
-              <div class="pix-st wait" id="pixSt">
-                ⏳ Aguardando pagamento...
-              </div>
-              <button
-                class="btn btn-ok btn-full"
-                style="margin-top: 10px"
-                id="btnPixOk"
-              >
-                <svg
-                  width="15"
-                  height="15"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
-                  <polyline points="22 4 12 14.01 9 11.01" />
-                </svg>
-                Confirmar Recebimento
-              </button>
-            </div>
-          </div>
-          <!-- Botão sempre visível na parte inferior -->
-          <div
-            id="cartFooterAction"
-            style="
-              padding: 12px 14px;
-              border-top: 1px solid var(--brd);
-              flex-shrink: 0;
-              background: var(--bg-card);
-            "
-          >
-            <button
-              class="btn btn-ok btn-full btn-xl"
-              id="btnFinalizar"
-              disabled
-            >
-              <svg
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-              Finalizar Pedido
-            </button>
-            <div class="pos-done" id="posDone">
-              <div class="pos-ok-txt">
-                <svg
-                  width="15"
-                  height="15"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
-                  <polyline points="22 4 12 14.01 9 11.01" />
-                </svg>
-                Pedido salvo!
-              </div>
-              <div class="pos-btns">
-                <button class="btn btn-ghost btn-full btn-sm" id="btnImprimir">
-                  <svg
-                    width="15"
-                    height="15"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <polyline points="6 9 6 2 18 2 18 9" />
-                    <path
-                      d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"
-                    />
-                    <rect x="6" y="14" width="12" height="8" />
-                  </svg>
-                  Imprimir
-                </button>
-                <button
-                  class="btn btn-ghost btn-full btn-sm"
-                  id="btnWhatsApp"
-                  style="border-color: #25d366; color: #25d366"
-                >
-                  <svg
-                    width="15"
-                    height="15"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"
-                    />
-                  </svg>
-                  WhatsApp
-                </button>
-              </div>
-              <button
-                class="btn btn-outline btn-full btn-sm"
-                id="btnNovoPedido"
-              >
-                <svg
-                  width="15"
-                  height="15"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                Novo Pedido
-              </button>
-            </div>
-          </div>
+          <button class="btn btn-outline btn-full btn-sm" id="btnNovoPedido"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Novo Pedido</button>
         </div>
       </div>
     </div>
-    <nav class="mob-nav">
-      <div class="mob-nav-inner">
-        <a href="dashboard.html" class="mob-link on"
-          ><svg
-            width="17"
-            height="17"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.75"
-          >
-            <circle cx="9" cy="21" r="1" />
-            <circle cx="20" cy="21" r="1" />
-            <path
-              d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"
-            /></svg
-          ><span>PDV</span></a
-        ><a href="produtos.html" class="mob-link"
-          ><svg
-            width="17"
-            height="17"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.75"
-          >
-            <line x1="16.5" y1="9.4" x2="7.5" y2="4.21" />
-            <path
-              d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"
-            />
-            <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-            <line x1="12" y1="22.08" x2="12" y2="12" /></svg
-          ><span>Produtos</span></a
-        ><a href="historico.html" class="mob-link"
-          ><svg
-            width="17"
-            height="17"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.75"
-          >
-            <polyline points="6 9 6 2 18 2 18 9" />
-            <path
-              d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"
-            />
-            <rect x="6" y="14" width="12" height="8" /></svg
-          ><span>Histórico</span></a
-        ><a href="cozinha.html" class="mob-link"
-          ><svg
-            width="17"
-            height="17"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.75"
-          >
-            <path
-              d="M6 13.87A4 4 0 017.41 6a5.11 5.11 0 0111.18 0A4 4 0 0118 13.87V21H6z"
-            />
-            <line x1="6" y1="17" x2="18" y2="17" /></svg
-          ><span>Cozinha</span></a
-        ><a href="config.html" class="mob-link"
-          ><svg
-            width="17"
-            height="17"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.75"
-          >
-            <circle cx="12" cy="12" r="3" />
-            <path
-              d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06-.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"
-            /></svg
-          ><span>Config</span></a
-        >
-      </div>
-    </nav>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script src="js/firebase.js"></script>
-    <script src="js/icons.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/print.js"></script>
-    <script src="js/pdv.js"></script>
-  </body>
-</html>
+  </div>
+</div>
+
+<!-- Carrinho FAB mobile -->
+<button id="btnCarrinhoMob" aria-label="Abrir carrinho">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+  <span class="cart-fab-badge" id="cartFabBadge">0</span>
+</button>
+<div id="cartOverlay"></div>
+
+<nav class="mob-nav"><div class="mob-nav-inner"><a href="dashboard.html" class="mob-link on"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg><span>PDV</span></a><a href="produtos.html" class="mob-link"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg><span>Produtos</span></a><a href="historico.html" class="mob-link"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg><span>Histórico</span></a><a href="cozinha.html" class="mob-link"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M6 13.87A4 4 0 017.41 6a5.11 5.11 0 0111.18 0A4 4 0 0118 13.87V21H6z"/><line x1="6" y1="17" x2="18" y2="17"/></svg><span>Cozinha</span></a><a href="config.html" class="mob-link"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06-.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span>Config</span></a></div></nav>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="js/firebase.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/print.js"></script>
+<script src="js/pdv.js"></script>
+</body></html>

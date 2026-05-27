@@ -1005,3 +1005,328 @@ textarea.input{resize:vertical;min-height:64px}
   .main{margin-left:0!important}
   body{background:#fff}
 }
+
+/* ══ MOBILE REDESIGN COMPLETO ═══════════════════════════════ */
+
+@media (max-width: 768px) {
+
+  /* ── Layout base ─────────────────────────────────────────── */
+  :root { --th: 54px; }
+
+  body { font-size: 14px; }
+
+  /* ── Topbar mobile ───────────────────────────────────────── */
+  .topbar {
+    height: var(--th);
+    padding: 0 14px;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 200;
+    box-shadow: 0 1px 8px rgba(0,0,0,.08);
+  }
+  .topbar-title { font-size: 16px; font-weight: 700; }
+  .topbar-name  { display: none; }
+  #topbarPerfilBadge { display: none !important; }
+
+  /* ── Main com padding top/bottom ────────────────────────── */
+  .main {
+    margin-left: 0 !important;
+    padding-top: var(--th);
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* ── Bottom nav mobile ───────────────────────────────────── */
+  .mob-nav {
+    display: flex !important;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: calc(60px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: var(--bg-sidebar);
+    border-top: 1px solid rgba(255,255,255,.08);
+    z-index: 200;
+    box-shadow: 0 -2px 16px rgba(0,0,0,.2);
+  }
+  .mob-nav-inner {
+    display: flex;
+    height: 60px;
+    align-items: center;
+    justify-content: space-around;
+    width: 100%;
+    padding: 0 4px;
+  }
+  .mob-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255,255,255,.35);
+    padding: 6px 10px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-family: var(--ff);
+    letter-spacing: .2px;
+    border-radius: var(--r2);
+    min-width: 52px;
+    transition: color .15s;
+    text-decoration: none;
+  }
+  .mob-link svg { width: 22px; height: 22px; stroke-width: 1.75; }
+  .mob-link span { display: block; }
+  .mob-link.on { color: var(--brand); }
+  .mob-link.on svg { stroke-width: 2.25; }
+
+  /* ── PDV mobile ──────────────────────────────────────────── */
+  .pdv-wrap {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - var(--th) - 60px - env(safe-area-inset-bottom, 0px));
+    overflow: hidden;
+  }
+
+  /* Tabs PDV */
+  .pdv-tabs {
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--brd);
+    padding: 0 12px;
+    flex-shrink: 0;
+    overflow-x: auto;
+  }
+  .pdv-tabs::-webkit-scrollbar { display: none; }
+  .pdv-tab {
+    padding: 12px 14px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* Produtos e carrinho em abas no mobile */
+  .pdv-left {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Carrinho mobile — slide up overlay */
+  .pdv-right {
+    position: fixed;
+    bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+    left: 0; right: 0;
+    height: 70vh;
+    background: var(--bg-card);
+    border-top: 2px solid var(--brand);
+    border-radius: 16px 16px 0 0;
+    z-index: 150;
+    transform: translateY(100%);
+    transition: transform .3s cubic-bezier(.4,0,.2,1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 -8px 32px rgba(0,0,0,.15);
+  }
+  .pdv-right.mob-open {
+    transform: translateY(0);
+  }
+
+  /* Handle do carrinho */
+  .cart-handle {
+    width: 36px; height: 4px;
+    background: var(--brd-s);
+    border-radius: 2px;
+    margin: 10px auto 0;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
+  /* Botão flutuante do carrinho */
+  #btnCarrinhoMob {
+    position: fixed;
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+    right: 16px;
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(249,115,22,.5);
+    z-index: 140;
+    transition: transform .15s;
+  }
+  #btnCarrinhoMob:active { transform: scale(.93); }
+  #btnCarrinhoMob svg { width: 24px; height: 24px; stroke-width: 2; }
+  #btnCarrinhoMob .cart-fab-badge {
+    position: absolute;
+    top: -2px; right: -2px;
+    width: 20px; height: 20px;
+    background: #fff;
+    color: var(--brand);
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    display: none;
+  }
+  #btnCarrinhoMob.tem-itens .cart-fab-badge { display: flex; }
+
+  /* Overlay escuro quando carrinho aberto */
+  #cartOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.4);
+    z-index: 149;
+    backdrop-filter: blur(2px);
+  }
+  #cartOverlay.show { display: block; }
+
+  /* Carrinho interno */
+  .cart-hd { padding: 10px 16px 6px; }
+  .cart-title { font-size: 15px; }
+  .id-row { padding: 6px 14px; grid-template-columns: 1fr 80px; gap: 6px; }
+  .id-row .input { padding: 8px 10px; font-size: 13px; }
+  .obs-row { padding: 0 14px 8px; }
+  .cart-body { flex: 1; overflow-y: auto; padding: 6px 14px; min-height: 80px; }
+  .ci { padding: 8px 0; }
+  .ci-nm { font-size: 14px; }
+  .ci-qbtn { width: 30px; height: 30px; font-size: 16px; }
+  .ci-q { font-size: 14px; min-width: 20px; }
+  .cart-foot { padding: 8px 14px; }
+  .tot-main .tot-v { font-size: 22px; }
+
+  /* Pay area */
+  .pay-area {
+    padding: 8px 14px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .pay-grid { grid-template-columns: repeat(3,1fr); gap: 6px; }
+  .pay-btn {
+    padding: 10px 6px;
+    font-size: 11px;
+    min-height: 54px;
+  }
+  .pay-btn svg { width: 20px; height: 20px; }
+
+  /* Botão finalizar sempre visível */
+  #cartFooterAction {
+    padding: 10px 14px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    flex-shrink: 0;
+  }
+  .btn-xl { min-height: 50px; font-size: 15px; font-weight: 700; }
+
+  /* ── Produtos grid mobile ─────────────────────────────────── */
+  .srch-bar { padding: 8px 12px; gap: 6px; }
+  .cats-bar { padding: 7px 12px; gap: 6px; }
+  .cat-chip { padding: 6px 13px; font-size: 12px; }
+  .prods-view { padding: 10px 12px; }
+  .prods-grid { grid-template-columns: repeat(2,1fr); gap: 8px; }
+  .prod-btn {
+    padding: 14px 10px;
+    min-height: 80px;
+    border-radius: var(--r3);
+  }
+  .pb-nm { font-size: 13px; line-height: 1.3; }
+  .pb-pr { font-size: 16px; font-weight: 800; margin-top: 4px; }
+  .pb-ct { font-size: 11px; }
+  .pb-add { width: 22px; height: 22px; font-size: 14px; }
+
+  /* ── Comandas mobile ─────────────────────────────────────── */
+  .cmds-view { padding: 10px 12px; }
+  .cmd-card { border-radius: var(--r3); margin-bottom: 10px; }
+  .cmd-hd { padding: 12px 14px; }
+  .cmd-nm { font-size: 15px; }
+  .cmd-total { font-size: 17px; }
+  .cmd-body { padding: 10px 14px; }
+  .cmd-acts { gap: 7px; flex-wrap: wrap; }
+  .cmd-acts .btn { font-size: 13px; min-height: 38px; }
+
+  /* ── Pages mobile ─────────────────────────────────────────── */
+  .page-wrap { padding: 14px 14px 20px; }
+  .page-hd { flex-direction: column; gap: 10px; }
+  .page-hd h1 { font-size: 18px; }
+  .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat-box { padding: 14px; }
+  .sb-val { font-size: 20px; }
+  .form-card { padding: 16px; }
+  .form-grid { grid-template-columns: 1fr; gap: 10px; }
+  .prod-item { padding: 12px 13px; gap: 10px; }
+  .pi-nm { font-size: 14px; }
+  .pi-pr { font-size: 16px; }
+  .user-item { padding: 12px 13px; }
+  .u-nm { font-size: 14px; }
+
+  /* ── Modal mobile — bottom sheet ────────────────────────── */
+  .overlay { align-items: flex-end; padding: 0; }
+  .modal-box {
+    border-radius: 16px 16px 0 0;
+    max-width: 100%;
+    margin: 0;
+    max-height: 85vh;
+    padding: 20px 18px;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* ── Toast mobile ─────────────────────────────────────────── */
+  .toast-wrap {
+    left: 12px; right: 12px; width: auto;
+    top: calc(var(--th) + 8px);
+  }
+
+  /* ── KDS mobile ───────────────────────────────────────────── */
+  .kds-board, .kds-board.c4 {
+    grid-template-columns: 1fr;
+    height: auto;
+    overflow-y: auto;
+  }
+  .kds-col {
+    min-height: 40vh;
+    border-right: none;
+    border-bottom: 1px solid rgba(255,255,255,.07);
+  }
+  .kds-top {
+    padding: 8px 12px;
+    flex-wrap: wrap;
+    gap: 6px;
+    height: auto;
+  }
+  .kds-stats { display: none; }
+  .kds-clk { display: none; }
+  .kds-card { margin-bottom: 6px; }
+
+  /* ── Sidebar oculta no mobile ─────────────────────────────── */
+  .sidebar { display: none !important; }
+  .sb-overlay { display: none !important; }
+  .topbar-menu { display: none !important; }
+}
+
+/* ── 375px ajustes finos ─────────────────────────────────── */
+@media (max-width: 375px) {
+  .prods-grid { grid-template-columns: repeat(2,1fr); gap: 6px; }
+  .prod-btn { padding: 12px 8px; min-height: 74px; }
+  .pb-nm { font-size: 12px; }
+  .pb-pr { font-size: 14px; }
+  .pay-btn span { font-size: 10px; }
+  .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .sb-val { font-size: 18px; }
+}
+
+/* ── Touch targets mínimos ─────────────────────────────────── */
+@media (hover: none) and (pointer: coarse) {
+  .btn { min-height: 44px; }
+  .btn-sm { min-height: 38px; }
+  .ci-qbtn { width: 34px; height: 34px; }
+  .mob-link { min-height: 48px; }
+  .prod-btn { min-height: 80px; }
+  .pay-btn { min-height: 54px; }
+  .cat-chip { min-height: 36px; padding: 8px 14px; }
+  .cat-opt { min-height: 42px; }
+  input, select, textarea { min-height: 44px; }
+  .sb-link { min-height: 48px; }
+}
