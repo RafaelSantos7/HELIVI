@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"
+    />
+    <meta name="theme-color" content="#111318" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>Configurações</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="icon" type="image/png" href="./image/logo-favicon.png" />
+  </head>
+  <body>
+    <aside class="sidebar" id="sidebar">
+      <button class="sb-toggle" id="sbToggle" title="Recolher">
+        <svg
+          width="11"
+          height="11"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+        >
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+      </button>
+      <div class="sidebar-brand">
+        <div class="sb-logo-wrap">
+          <img
+            src="./image/logo.png"
+            alt="HELIVI"
+            onerror="
+              this.style.display = 'none';
+              this.nextElementSibling.style.display = 'flex';
+            "
+          />
+          <div class="sb-logo-fallback">H</div>
+        </div>
+        <div class="sb-brand-text">
+          <div class="sb-brand-name">HELIVI</div>
+          <div class="sb-brand-sub">PDV System</div>
+        </div>
+      </div>
+      <nav class="sb-nav">
+        <div class="sb-section">Menu principal</div>
+        <a href="dashboard.html" class="sb-link" data-tip="PDV"
+          ><span class="sb-icon"
+            ><svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+            >
+              <circle cx="9" cy="21" r="1" />
+              <circle cx="20" cy="21" r="1" />
+              <path
+                d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"
+              /></svg></span
+          ><span class="sb-label">PDV</span></a
+        >
+        <a href="produtos.html" class="sb-link" data-tip="Produtos"
+          ><span class="sb-icon"
+            ><svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+            >
+              <line x1="16.5" y1="9.4" x2="7.5" y2="4.21" />
+              <path
+                d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"
+              />
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+              <line x1="12" y1="22.08" x2="12" y2="12" /></svg></span
+          ><span class="sb-label">Produtos</span></a
+        >
+        <a href="historico.html" class="sb-link" data-tip="Histórico"
+          ><span class="sb-icon"
+            ><svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+            >
+              <polyline points="6 9 6 2 18 2 18 9" />
+              <path
+                d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"
+              />
+              <rect x="6" y="14" width="12" height="8" /></svg></span
+          ><span class="sb-label">Histórico</span></a
+        >
+        <a href="lucro.html" class="sb-link" data-tip="Lucro"
+          ><span class="sb-icon"
+            ><svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+            >
+              <line x1="12" y1="20" x2="12" y2="10" />
+              <line x1="18" y1="20" x2="18" y2="4" />
+              <line x1="6" y1="20" x2="6" y2="16" /></svg></span
+          ><span class="sb-label">Lucro</span></a
+        >
+        <div class="sb-sep"></div>
+        <div class="sb-section">Módulos</div>
+        <a href="cozinha.html" class="sb-link" data-tip="Cozinha"
+          ><span class="sb-icon"
+            ><svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+            >
+              <path
+                d="M6 13.87A4 4 0 017.41 6a5.11 5.11 0 0111.18 0A4 4 0 0118 13.87V21H6z"
+              />
+              <line x1="6" y1="17" x2="18" y2="17" /></svg></span
+          ><span class="sb-label">Cozinha</span></a
+        >
+        <a href="balcao.html" class="sb-link" data-tip="Balcão de Bebidas"
+          ><span class="sb-icon"
+            ><svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+            >
+              <path d="M8 22h8" />
+              <path d="M12 11v11" />
+              <path d="M4 6l2 12h12L20 6H4z" /></svg></span
+          ><span class="sb-label">Balcão de Bebidas</span></a
+        >
+        <a href="usuarios.html" class="sb-link" data-tip="Colaboradores"
+          ><span class="sb-icon"
+            ><svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+            >
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 00-3-3.87" />
+              <path d="M16 3.13a4 4 0 010 7.75" /></svg></span
+          ><span class="sb-label">Colaboradores</span></a
+        >
+      </nav>
+      <div class="sb-footer">
+        <a href="config.html" class="sb-link on" data-tip="Configurações"
+          ><span class="sb-icon"
+            ><svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+            >
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06-.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"
+              /></svg></span
+          ><span class="sb-label">Configurações</span></a
+        >
+        <button class="sb-link" id="btnLogout" data-tip="Sair">
+          <span class="sb-icon"
+            ><svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+            >
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" /></svg></span
+          ><span class="sb-label">Sair</span>
+        </button>
+      </div>
+    </aside>
+    <div class="main">
+      <header class="topbar">
+        <button class="topbar-menu" id="topbarMenu">
+          <svg
+            width="17"
+            height="17"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+        <div class="topbar-info">
+          <div class="topbar-title">Configurações</div>
+        </div>
+        <div class="topbar-user">
+          <div class="topbar-avatar" id="topbarAvatar">?</div>
+          <span class="topbar-name" id="topbarName"></span>
+          <span
+            class="badge b-org"
+            id="topbarPerfilBadge"
+            style="display: none; font-size: 10px"
+          ></span>
+        </div>
+      </header>
+      <div class="page-wrap" style="max-width: 640px">
+        <div class="card" style="padding: 22px; margin-bottom: 18px">
+          <div class="cfg-title">Estabelecimento</div>
+          <div class="field">
+            <label>Nome</label
+            ><input
+              class="input"
+              id="cNome"
+              placeholder="Ex: Lanchonete do Zé"
+              maxlength="50"
+            />
+          </div>
+          <div class="field">
+            <label>Mensagem Final do Cupom</label
+            ><input
+              class="input"
+              id="cMsg"
+              placeholder="Obrigado pela preferência!"
+              maxlength="80"
+            />
+          </div>
+          <div class="field">
+            <label>WhatsApp (com DDD)</label
+            ><input
+              class="input"
+              id="cWA"
+              type="tel"
+              placeholder="11999999999"
+              maxlength="15"
+            />
+          </div>
+        </div>
+        <div class="card" style="padding: 22px; margin-bottom: 18px">
+          <div class="cfg-title">PIX</div>
+          <div class="field">
+            <label>Tipo de Chave</label
+            ><select class="input" id="cPixTipo">
+              <option value="cpf">CPF</option>
+              <option value="cnpj">CNPJ</option>
+              <option value="email">E-mail</option>
+              <option value="telefone">Telefone</option>
+              <option value="aleatoria">Chave Aleatória</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Chave PIX</label
+            ><input
+              class="input"
+              id="cPixChave"
+              placeholder="Digite sua chave PIX"
+            />
+          </div>
+          <div class="field">
+            <label>URL do QR Code (opcional)</label
+            ><input class="input" id="cPixQR" placeholder="https://..." />
+            <p style="font-size: 11px; color: var(--t4); margin-top: 4px">
+              Se vazio, o QR é gerado automaticamente
+            </p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px">
+            <button class="btn btn-ghost btn-sm" id="btnPreviewPix">
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              Ver QR Code
+            </button>
+            <div id="pixPreviewWrap" style="display: none">
+              <img
+                id="pixPreviewImg"
+                style="
+                  width: 90px;
+                  height: 90px;
+                  border: 1px solid var(--brd);
+                  border-radius: var(--r2);
+                  object-fit: contain;
+                "
+              />
+            </div>
+          </div>
+        </div>
+        <div class="card" style="padding: 22px; margin-bottom: 18px">
+          <div class="cfg-title">Preferências</div>
+          <div class="cfg-row">
+            <div>
+              <div class="cfg-lbl">Som ao adicionar produto</div>
+              <div class="cfg-dsc">Bip de confirmação no PDV e KDS</div>
+            </div>
+            <label class="toggle"
+              ><input type="checkbox" id="tSom" checked /><span
+                class="tog-tr"
+              ></span
+            ></label>
+          </div>
+          <div class="cfg-row">
+            <div>
+              <div class="cfg-lbl">Imprimir automaticamente</div>
+              <div class="cfg-dsc">Abre o cupom após finalizar pedido</div>
+            </div>
+            <label class="toggle"
+              ><input type="checkbox" id="tImp" /><span class="tog-tr"></span
+            ></label>
+          </div>
+        </div>
+        <div class="card" style="padding: 22px; margin-bottom: 18px">
+          <div class="cfg-title">KDS — Separação Automática</div>
+          <p
+            style="
+              font-size: 13px;
+              color: var(--t3);
+              line-height: 1.6;
+              margin-bottom: 12px;
+            "
+          >
+            Os itens são enviados conforme a categoria do produto:
+          </p>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
+            <div
+              style="
+                padding: 11px;
+                background: rgba(249, 115, 22, 0.05);
+                border: 1px solid rgba(249, 115, 22, 0.15);
+                border-radius: var(--r2);
+              "
+            >
+              <div
+                style="
+                  font-size: 13px;
+                  font-weight: 700;
+                  color: var(--brand);
+                  margin-bottom: 4px;
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                "
+              >
+                <svg
+                  width="17"
+                  height="17"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.75"
+                >
+                  <path
+                    d="M6 13.87A4 4 0 017.41 6a5.11 5.11 0 0111.18 0A4 4 0 0118 13.87V21H6z"
+                  />
+                  <line x1="6" y1="17" x2="18" y2="17" />
+                </svg>
+                Cozinha
+              </div>
+              <div style="font-size: 12px; color: var(--t4)">
+                Comida, Lanche, Porção, Entrada, Combo
+              </div>
+            </div>
+            <div
+              style="
+                padding: 11px;
+                background: rgba(37, 99, 235, 0.05);
+                border: 1px solid rgba(37, 99, 235, 0.15);
+                border-radius: var(--r2);
+              "
+            >
+              <div
+                style="
+                  font-size: 13px;
+                  font-weight: 700;
+                  color: var(--info);
+                  margin-bottom: 4px;
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                "
+              >
+                <svg
+                  width="17"
+                  height="17"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.75"
+                >
+                  <path d="M8 22h8" />
+                  <path d="M12 11v11" />
+                  <path d="M4 6l2 12h12L20 6H4z" />
+                </svg>
+                Balcão
+              </div>
+              <div style="font-size: 12px; color: var(--t4)">Bebida</div>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-full btn-lg" id="btnSalvar">
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          Salvar Configurações
+        </button>
+        <div class="card" style="padding: 22px; margin-top: 18px">
+          <div class="cfg-title">Conta</div>
+          <p
+            style="font-size: 13px; color: var(--t4); margin-bottom: 14px"
+            id="emailUser"
+          >
+            —
+          </p>
+          <button
+            class="btn btn-ghost btn-full"
+            id="btnSair"
+            style="border-color: var(--err-b); color: var(--err)"
+          >
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+            >
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            Sair da Conta
+          </button>
+        </div>
+      </div>
+    </div>
+    <nav class="mob-nav">
+      <div class="mob-nav-inner">
+        <a href="dashboard.html" class="mob-link"
+          ><svg
+            width="17"
+            height="17"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+          >
+            <circle cx="9" cy="21" r="1" />
+            <circle cx="20" cy="21" r="1" />
+            <path
+              d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"
+            /></svg
+          ><span>PDV</span></a
+        ><a href="produtos.html" class="mob-link"
+          ><svg
+            width="17"
+            height="17"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+          >
+            <line x1="16.5" y1="9.4" x2="7.5" y2="4.21" />
+            <path
+              d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"
+            />
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+            <line x1="12" y1="22.08" x2="12" y2="12" /></svg
+          ><span>Produtos</span></a
+        ><a href="historico.html" class="mob-link"
+          ><svg
+            width="17"
+            height="17"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+          >
+            <polyline points="6 9 6 2 18 2 18 9" />
+            <path
+              d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"
+            />
+            <rect x="6" y="14" width="12" height="8" /></svg
+          ><span>Histórico</span></a
+        ><a href="cozinha.html" class="mob-link"
+          ><svg
+            width="17"
+            height="17"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+          >
+            <path
+              d="M6 13.87A4 4 0 017.41 6a5.11 5.11 0 0111.18 0A4 4 0 0118 13.87V21H6z"
+            />
+            <line x1="6" y1="17" x2="18" y2="17" /></svg
+          ><span>Cozinha</span></a
+        ><a href="config.html" class="mob-link on"
+          ><svg
+            width="17"
+            height="17"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+          >
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06-.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"
+            /></svg
+          ><span>Config</span></a
+        >
+      </div>
+    </nav>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase.js"></script>
+    <script src="js/icons.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+      requireAuth((user) => {
+        setupTopbar(user);
+        document.getElementById("emailUser").textContent = user.email;
+        document.getElementById("cNome").value =
+          localStorage.getItem("nomeEstab") || "";
+        document.getElementById("cMsg").value =
+          localStorage.getItem("msgFinal") || "";
+        document.getElementById("cWA").value =
+          localStorage.getItem("whatsappTel") || "";
+        document.getElementById("cPixChave").value =
+          localStorage.getItem("pixChave") || "";
+        document.getElementById("cPixTipo").value =
+          localStorage.getItem("pixTipo") || "cpf";
+        document.getElementById("cPixQR").value =
+          localStorage.getItem("pixQRUrl") || "";
+        document.getElementById("tSom").checked =
+          localStorage.getItem("somAtivo") !== "false";
+        document.getElementById("tImp").checked =
+          localStorage.getItem("impressaoAuto") === "true";
+        document.getElementById("btnSalvar").addEventListener("click", () => {
+          localStorage.setItem(
+            "nomeEstab",
+            document.getElementById("cNome").value.trim() || "HELIVI",
+          );
+          localStorage.setItem(
+            "msgFinal",
+            document.getElementById("cMsg").value.trim() || "Obrigado!",
+          );
+          localStorage.setItem(
+            "whatsappTel",
+            document.getElementById("cWA").value.trim(),
+          );
+          localStorage.setItem(
+            "pixChave",
+            document.getElementById("cPixChave").value.trim(),
+          );
+          localStorage.setItem(
+            "pixTipo",
+            document.getElementById("cPixTipo").value,
+          );
+          localStorage.setItem(
+            "pixQRUrl",
+            document.getElementById("cPixQR").value.trim(),
+          );
+          localStorage.setItem(
+            "somAtivo",
+            document.getElementById("tSom").checked,
+          );
+          localStorage.setItem(
+            "impressaoAuto",
+            document.getElementById("tImp").checked,
+          );
+          toast("Configurações salvas!", "success");
+        });
+        document
+          .getElementById("btnPreviewPix")
+          ?.addEventListener("click", () => {
+            const ch = document.getElementById("cPixChave").value.trim(),
+              qr = document.getElementById("cPixQR").value.trim();
+            if (!ch && !qr) {
+              toast("Configure a chave PIX primeiro", "warning");
+              return;
+            }
+            document.getElementById("pixPreviewImg").src =
+              qr ||
+              `https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent(ch)}`;
+            document.getElementById("pixPreviewWrap").style.display = "block";
+          });
+        document
+          .getElementById("btnSair")
+          .addEventListener("click", logoutUser);
+      });
+    </script>
+  </body>
+</html>
