@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <title>Configurações</title>
     <link rel="stylesheet" href="css/styles.css" />
-    <link rel="icon" type="image/png" href="./image/logo-favicon.png" />
+    <link rel="icon" type="image/svg+xml" href="./image/logo.svg" />
   </head>
   <body>
     <aside class="sidebar" id="sidebar">
@@ -29,7 +29,7 @@
       <div class="sidebar-brand">
         <div class="sb-logo-wrap">
           <img
-            src="./image/logo.png"
+            src="./image/logo.svg"
             alt="HELIVI"
             onerror="
               this.style.display = 'none';
@@ -258,60 +258,11 @@
           </div>
         </div>
         <div class="card" style="padding: 22px; margin-bottom: 18px">
-          <div class="cfg-title">PIX</div>
-          <div class="field">
-            <label>Tipo de Chave</label
-            ><select class="input" id="cPixTipo">
-              <option value="cpf">CPF</option>
-              <option value="cnpj">CNPJ</option>
-              <option value="email">E-mail</option>
-              <option value="telefone">Telefone</option>
-              <option value="aleatoria">Chave Aleatória</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Chave PIX</label
-            ><input
-              class="input"
-              id="cPixChave"
-              placeholder="Digite sua chave PIX"
-            />
-          </div>
-          <div class="field">
-            <label>URL do QR Code (opcional)</label
-            ><input class="input" id="cPixQR" placeholder="https://..." />
-            <p style="font-size: 11px; color: var(--t4); margin-top: 4px">
-              Se vazio, o QR é gerado automaticamente
-            </p>
-          </div>
-          <div style="display: flex; align-items: center; gap: 12px">
-            <button class="btn btn-ghost btn-sm" id="btnPreviewPix">
-              <svg
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-              Ver QR Code
-            </button>
-            <div id="pixPreviewWrap" style="display: none">
-              <img
-                id="pixPreviewImg"
-                style="
-                  width: 90px;
-                  height: 90px;
-                  border: 1px solid var(--brd);
-                  border-radius: var(--r2);
-                  object-fit: contain;
-                "
-              />
-            </div>
-          </div>
+          <div class="cfg-title">PIX (Efi Bank)</div>
+          <p style="font-size: 13px; color: var(--t3); line-height: 1.5; margin: 0">
+            Pagamentos PIX são gerados automaticamente via API Efi Bank no PDV.
+            Configure credenciais e certificado em <code style="font-size: 12px">helivi-functions/.env.local</code>.
+          </p>
         </div>
         <div class="card" style="padding: 22px; margin-bottom: 18px">
           <div class="cfg-title">Preferências</div>
@@ -563,12 +514,6 @@
           localStorage.getItem("msgFinal") || "";
         document.getElementById("cWA").value =
           localStorage.getItem("whatsappTel") || "";
-        document.getElementById("cPixChave").value =
-          localStorage.getItem("pixChave") || "";
-        document.getElementById("cPixTipo").value =
-          localStorage.getItem("pixTipo") || "cpf";
-        document.getElementById("cPixQR").value =
-          localStorage.getItem("pixQRUrl") || "";
         document.getElementById("tSom").checked =
           localStorage.getItem("somAtivo") !== "false";
         document.getElementById("tImp").checked =
@@ -587,18 +532,6 @@
             document.getElementById("cWA").value.trim(),
           );
           localStorage.setItem(
-            "pixChave",
-            document.getElementById("cPixChave").value.trim(),
-          );
-          localStorage.setItem(
-            "pixTipo",
-            document.getElementById("cPixTipo").value,
-          );
-          localStorage.setItem(
-            "pixQRUrl",
-            document.getElementById("cPixQR").value.trim(),
-          );
-          localStorage.setItem(
             "somAtivo",
             document.getElementById("tSom").checked,
           );
@@ -608,20 +541,6 @@
           );
           toast("Configurações salvas!", "success");
         });
-        document
-          .getElementById("btnPreviewPix")
-          ?.addEventListener("click", () => {
-            const ch = document.getElementById("cPixChave").value.trim(),
-              qr = document.getElementById("cPixQR").value.trim();
-            if (!ch && !qr) {
-              toast("Configure a chave PIX primeiro", "warning");
-              return;
-            }
-            document.getElementById("pixPreviewImg").src =
-              qr ||
-              `https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent(ch)}`;
-            document.getElementById("pixPreviewWrap").style.display = "block";
-          });
         document
           .getElementById("btnSair")
           .addEventListener("click", logoutUser);

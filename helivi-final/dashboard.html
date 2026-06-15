@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <meta name="theme-color" content="#111318">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" type="image/svg+xml" href="./image/logo.svg">
 <title>HELIVI — PDV</title>
 <link rel="stylesheet" href="css/styles.css">
 <style>
@@ -16,7 +18,7 @@
   <button class="sb-toggle" id="sbToggle" title="Recolher"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
   <div class="sidebar-brand">
     <div class="sb-logo-wrap">
-      <img src="./image/HELIVI.png" alt="HELIVI" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <img src="./image/logo.svg" alt="HELIVI" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
       <div class="sb-logo-fallback">H</div>
     </div>
     <div class="sb-brand-text">
@@ -191,14 +193,11 @@
             <div class="rest-box"><span class="rest-l" id="restLbl">Restante Cartão 2:</span><span class="rest-v" id="restVal">R$&nbsp;0,00</span></div>
           </div>
         </div>
-        <!-- PIX -->
+        <!-- PIX Efi Bank -->
         <div class="pix-box" id="pixBox">
-          <div style="font-size:11px;color:var(--t4);margin-bottom:10px">Escaneie o QR Code ou copie a chave</div>
-          <div class="pix-qr" id="pixQRDisp"></div>
-          <div class="pix-chave" id="pixChaveDisp">—</div>
+          <div style="font-size:11px;color:var(--t4);margin-bottom:10px">QR Code gerado via Efi Bank ao finalizar o pedido</div>
           <div class="pix-val" id="pixVal">R$&nbsp;0,00</div>
-          <div class="pix-st wait" id="pixSt">⏳ Aguardando pagamento...</div>
-          <button class="btn btn-ok btn-full" style="margin-top:10px" id="btnPixOk"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Confirmar Recebimento</button>
+          <div class="pix-st wait" id="pixSt">Clique em Finalizar Pedido para exibir o QR Code</div>
         </div>
       </div>
       <!-- Botão sempre visível na parte inferior -->

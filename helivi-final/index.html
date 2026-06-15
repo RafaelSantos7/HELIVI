@@ -8,9 +8,10 @@
     />
     <meta name="theme-color" content="#111318" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <title>Login</title>
     <link rel="stylesheet" href="css/styles.css" />
-    <link rel="icon" type="image/png" href="./image/logo-favicon.png" />
+    <link rel="icon" type="image/svg+xml" href="./image/logo.svg" />
   </head>
   <body>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -23,7 +24,7 @@
       <div class="auth-left">
         <div class="auth-brand">
           <img
-            src="./image/logo.png"
+            src="./image/logo.svg"
             alt="HELIVI"
             class="auth-logo"
             onerror="
@@ -177,10 +178,10 @@
       </div>
     </div>
     <script>
+      let modo = "e";
       auth.onAuthStateChanged((u) => {
         if (u) location.href = "dashboard.html";
       });
-      let modo = "e";
       const ERROS = {
         "auth/user-not-found": "Usuário não encontrado.",
         "auth/wrong-password": "Senha incorreta.",
