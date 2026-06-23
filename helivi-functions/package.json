@@ -1,0 +1,28 @@
+{
+  "name": "helivi-functions",
+  "description": "Firebase Functions do HELIVI PDV",
+  "scripts": {
+    "serve": "node scripts/free-emulator-ports.js && firebase emulators:start --only functions,auth,firestore",
+    "efi:status": "node scripts/efi-ambiente.js status",
+    "efi:homolog": "node scripts/efi-ambiente.js homolog",
+    "efi:producao": "node scripts/efi-ambiente.js producao",
+    "efi:toggle": "node scripts/efi-ambiente.js toggle",
+    "test:pix": "node functions/test-pix-oauth.js",
+    "test:pix:cob": "node functions/test-pix-oauth.js --cob",
+    "test:pix:homolog": "node functions/test-pix-oauth.js --homolog",
+    "test:pix:homolog:cob": "node functions/test-pix-oauth.js --homolog --cob",
+    "test:pix:producao": "node functions/test-pix-oauth.js --producao",
+    "test:pix:producao:cob": "node functions/test-pix-oauth.js --producao --cob",
+    "test:smoke": "node scripts/smoke-test.js",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": { "node": "20" },
+  "main": "functions/index.js",
+  "dependencies": {
+    "firebase-admin": "^12.0.0",
+    "firebase-functions": "^6.0.0",
+    "axios": "^1.6.0"
+  },
+  "private": true
+}

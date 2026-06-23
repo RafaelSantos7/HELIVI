@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"
+    />
+    <meta name="theme-color" content="#111318" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <title>Login</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="icon" type="image/svg+xml" href="./image/logo.svg" />
+  </head>
+  <body>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase.js"></script>
+    <script src="js/icons.js"></script>
+    <script src="js/auth.js"></script>
+    <div class="auth-page">
+      <div class="auth-left">
+        <div class="auth-brand">
+          <img
+            src="./image/logo.svg"
+            alt="HELIVI"
+            class="auth-logo"
+            onerror="
+              this.style.display = 'none';
+              document.getElementById('authFb').style.display = 'flex';
+            "
+          />
+          <div class="auth-logo-fb" id="authFb">
+            <div class="mk">H</div>
+            <div class="nm">HELIVI</div>
+          </div>
+          <div class="auth-tagline">Sistema de Gestão para Lanchonetes</div>
+          <div class="auth-feats">
+            <div class="auth-feat">
+              <svg
+                width="17"
+                height="17"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.75"
+              >
+                <polyline points="6 9 6 2 18 2 18 9" />
+                <path
+                  d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"
+                />
+                <rect x="6" y="14" width="12" height="8" /></svg
+              ><span class="auth-feat-txt">Comandas em tempo real</span>
+            </div>
+            <div class="auth-feat">
+              <svg
+                width="17"
+                height="17"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.75"
+              >
+                <path
+                  d="M6 13.87A4 4 0 017.41 6a5.11 5.11 0 0111.18 0A4 4 0 0118 13.87V21H6z"
+                />
+                <line x1="6" y1="17" x2="18" y2="17" /></svg
+              ><span class="auth-feat-txt"
+                >KDS: Cozinha e Balcão integrados</span
+              >
+            </div>
+            <div class="auth-feat">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.75"
+              >
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+                <line x1="1" y1="10" x2="23" y2="10" /></svg
+              ><span class="auth-feat-txt"
+                >PIX com QR, crédito em 2 cartões</span
+              >
+            </div>
+            <div class="auth-feat">
+              <svg
+                width="17"
+                height="17"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.75"
+              >
+                <line x1="12" y1="20" x2="12" y2="10" />
+                <line x1="18" y1="20" x2="18" y2="4" />
+                <line x1="6" y1="20" x2="6" y2="16" /></svg
+              ><span class="auth-feat-txt"
+                >Relatórios financeiros completos</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="auth-right">
+        <div class="auth-form-wrap">
+          <div class="auth-title">Bem-vindo de volta</div>
+          <div class="auth-sub">Entre na sua conta para continuar</div>
+          <div class="auth-tabs">
+            <button class="auth-tab on" id="tabE" onclick="troca('e')">
+              Entrar
+            </button>
+            <button class="auth-tab" id="tabC" onclick="troca('c')">
+              Criar Conta
+            </button>
+          </div>
+          <div class="auth-alert err" id="aErr"></div>
+          <div class="auth-alert ok" id="aOk"></div>
+          <div class="field">
+            <label>E-mail</label
+            ><input
+              class="input"
+              type="email"
+              id="fEmail"
+              placeholder="seu@email.com"
+              autocomplete="email"
+            />
+          </div>
+          <div class="field">
+            <label>Senha</label
+            ><input
+              class="input"
+              type="password"
+              id="fSenha"
+              placeholder="Mínimo 6 caracteres"
+            />
+          </div>
+          <div class="field" id="fcConf" style="display: none">
+            <label>Confirmar Senha</label
+            ><input
+              class="input"
+              type="password"
+              id="fConf"
+              placeholder="Repita a senha"
+            />
+          </div>
+          <button
+            class="btn btn-primary btn-full btn-lg"
+            id="btnAcao"
+            style="margin-top: 4px"
+          >
+            Entrar
+          </button>
+          <p
+            style="
+              text-align: center;
+              margin-top: 16px;
+              font-size: 13px;
+              color: var(--t4);
+            "
+            id="txAlt"
+          >
+            Não tem conta?
+            <a
+              href="#"
+              style="color: var(--brand); font-weight: 600"
+              onclick="
+                troca('c');
+                return false;
+              "
+              >Criar conta</a
+            >
+          </p>
+        </div>
+      </div>
+    </div>
+    <script>
+      let modo = "e";
+      auth.onAuthStateChanged((u) => {
+        if (u) location.href = "dashboard.html";
+      });
+      const ERROS = {
+        "auth/user-not-found": "Usuário não encontrado.",
+        "auth/wrong-password": "Senha incorreta.",
+        "auth/invalid-email": "E-mail inválido.",
+        "auth/email-already-in-use": "E-mail já cadastrado.",
+        "auth/weak-password": "Senha fraca (mín. 6 caracteres).",
+        "auth/too-many-requests": "Muitas tentativas.",
+        "auth/invalid-credential": "E-mail ou senha incorretos.",
+      };
+      function troca(m) {
+        modo = m;
+        document.getElementById("aErr").style.display = document.getElementById(
+          "aOk",
+        ).style.display = "none";
+        document.getElementById("tabE").classList.toggle("on", m === "e");
+        document.getElementById("tabC").classList.toggle("on", m === "c");
+        document.getElementById("fcConf").style.display =
+          m === "c" ? "block" : "none";
+        document.getElementById("btnAcao").textContent =
+          m === "e" ? "Entrar" : "Criar Conta";
+        document.getElementById("txAlt").innerHTML =
+          m === "e"
+            ? 'Não tem conta? <a href="#" style="color:var(--brand);font-weight:600" onclick="troca(\'c\');return false">Criar conta</a>'
+            : 'Já tem conta? <a href="#" style="color:var(--brand);font-weight:600" onclick="troca(\'e\');return false">Entrar</a>';
+      }
+      document.getElementById("btnAcao").addEventListener("click", async () => {
+        const email = document.getElementById("fEmail").value.trim(),
+          senha = document.getElementById("fSenha").value;
+        const err = document.getElementById("aErr"),
+          ok = document.getElementById("aOk");
+        err.style.display = ok.style.display = "none";
+        if (!email || !senha) {
+          err.textContent = "Preencha e-mail e senha.";
+          err.style.display = "block";
+          return;
+        }
+        if (modo === "c") {
+          const c = document.getElementById("fConf").value;
+          if (senha !== c) {
+            err.textContent = "Senhas não coincidem.";
+            err.style.display = "block";
+            return;
+          }
+          if (senha.length < 6) {
+            err.textContent = "Senha muito curta.";
+            err.style.display = "block";
+            return;
+          }
+        }
+        const btn = document.getElementById("btnAcao");
+        btn.disabled = true;
+        btn.textContent = modo === "e" ? "Entrando..." : "Criando...";
+        try {
+          if (modo === "e") await auth.signInWithEmailAndPassword(email, senha);
+          else {
+            await auth.createUserWithEmailAndPassword(email, senha);
+            ok.textContent = "✅ Conta criada! Entrando...";
+            ok.style.display = "block";
+          }
+        } catch (e) {
+          err.textContent = ERROS[e.code] || "Erro. Tente novamente.";
+          err.style.display = "block";
+          btn.disabled = false;
+          btn.textContent = modo === "e" ? "Entrar" : "Criar Conta";
+        }
+      });
+      ["fEmail", "fSenha", "fConf"].forEach((id) =>
+        document.getElementById(id)?.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") document.getElementById("btnAcao").click();
+        }),
+      );
+    </script>
+  </body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "ambiente": "homolog",
+  "homolog": {
+    "clientId": "COLE_AQUI_CLIENT_ID_HOMOLOG",
+    "clientSecret": "COLE_AQUI_CLIENT_SECRET_HOMOLOG",
+    "pixKey": "COLE_AQUI_PIX_KEY_HOMOLOG"
+  },
+  "producao": {
+    "clientId": "COLE_AQUI_CLIENT_ID_PRODUCAO",
+    "clientSecret": "COLE_AQUI_CLIENT_SECRET_PRODUCAO",
+    "pixKey": "COLE_AQUI_PIX_KEY_PRODUCAO"
+  }
+}

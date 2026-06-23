@@ -1,0 +1,57 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Usuário autenticado (baseline para coleções do PDV)
+    function autenticado() {
+      return request.auth != null;
+    }
+
+    // Configurações públicas de pagamento (gateway ativo, flags)
+    match /configuracoes/pagamentos {
+      allow read, write: if autenticado();
+    }
+
+    // Segredos: somente Cloud Functions (Admin SDK) — cliente não lê nem grava
+    match /configuracoes/segredos_pagamento {
+      allow read, write: if false;
+    }
+
+    match /configuracoes/{docId} {
+      allow read, write: if autenticado();
+    }
+
+    match /usuarios/{docId} {
+      allow read, write: if autenticado();
+    }
+
+    match /produtos/{docId} {
+      allow read, write: if autenticado();
+    }
+
+    match /comandas/{docId} {
+      allow read, write: if autenticado();
+    }
+
+    match /pedidos/{docId} {
+      allow read, write: if autenticado();
+    }
+
+    match /kds_cozinha/{docId} {
+      allow read, write: if autenticado();
+    }
+
+    match /kds_balcao/{docId} {
+      allow read, write: if autenticado();
+    }
+
+    match /pagamentos_pix/{docId} {
+      allow read, write: if autenticado();
+    }
+
+    match /config/{docId} {
+      allow read, write: if autenticado();
+    }
+  }
+}
