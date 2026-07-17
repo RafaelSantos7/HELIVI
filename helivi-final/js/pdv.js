@@ -13,6 +13,8 @@ let pagSel=null, parcelaSel=null, creditoMode='um';
 let abaAtiva='produtos', todasComandas=[], filtroStatus='todos';
 let comandaAtiva=null; // { id, cliente, mesa, obs }
 let modoComanda=false; // true = enviando itens para comanda (sem pagar), false = venda direta
+let pixAtivo=false, pixGerando=false, pixTxidAtual=null, pixComandaIdAtual=null, pixValorReaisAtual=null;
+let pixUnsubscribe=null, pixVerificacaoTimer=null, pixCountdownTimer=null;
 
 // ── Init ──────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
@@ -242,7 +244,7 @@ function selPag(tipo,label){
   pagSel=label;
   document.getElementById('credBox').classList.toggle('show',tipo==='credito');
   document.getElementById('pixBox').classList.toggle('show',tipo==='pix');
-  if(tipo==='pix')montarPIX();
+  if(tipo==='pix')atualizarInfoPix();
   if(tipo!=='credito'){parcelaSel=null;creditoMode='um';}
 }
 function setCreditoMode(m){
@@ -253,62 +255,47 @@ function setCreditoMode(m){
   document.getElementById('doisCartWrap').classList.toggle('show',m==='dois');
 }
 function selParc(btn,p){document.querySelectorAll('.parc').forEach(b=>b.classList.remove('on'));btn.classList.add('on');parcelaSel=p;}
-function gerarPixPayload(chave, valor, nomeRecebedor, cidade) {
-  // Gera BR Code PIX (padrão EMV) para QR Code escaneável
-  nomeRecebedor = (nomeRecebedor||'HELIVI').substring(0,25).toUpperCase();
-  cidade = (cidade||'CIDADE').substring(0,15).toUpperCase();
-  const chaveFormatada = chave.trim();
-  const merchantAccountInfo = '0014BR.GOV.BCB.PIX' + '01' + String(chaveFormatada.length).padStart(2,'0') + chaveFormatada;
-  const mai = '26' + String(merchantAccountInfo.length).padStart(2,'0') + merchantAccountInfo;
-  const mcc = '52040000'; // restaurante
-  const moeda = '5303986';
-  const valorStr = valor > 0 ? '54' + String(valor.toFixed(2).length).padStart(2,'0') + valor.toFixed(2) : '';
-  const pais = '5802BR';
-  const nome = '59' + String(nomeRecebedor.length).padStart(2,'0') + nomeRecebedor;
-  const cid  = '60' + String(cidade.length).padStart(2,'0') + cidade;
-  const txid = '62070503***'; // referência
-  let payload = '000201' + mai + mcc + moeda + valorStr + pais + nome + cid + txid + '6304';
-  // CRC16
-  function crc16(str) {
-    let crc = 0xFFFF;
-    for (let i=0; i<str.length; i++) {
-      crc ^= str.charCodeAt(i) << 8;
-      for (let j=0; j<8; j++) crc = (crc & 0x8000) ? (crc<<1)^0x1021 : crc<<1;
-    }
-    return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4,'0');
-  }
-  return payload + crc16(payload);
+
+function calcularTotalPagamento(){
+  return carrinho.reduce((s,i)=>s+i.preco*i.quantidade,0);
 }
 
-function montarPIX(){
-  const chave = localStorage.getItem('pixChave')||'';
-  const qrUrl = localStorage.getItem('pixQRUrl')||'';
-  const nome  = localStorage.getItem('nomeEstab')||'HELIVI';
-  const total = carrinho.reduce((s,i)=>s+i.preco*i.quantidade,0);
-
-  document.getElementById('pixVal').textContent = fmtR(total);
-  document.getElementById('pixChaveDisp').textContent = chave || 'Configure a chave PIX nas Configurações';
-  document.getElementById('pixSt').className = 'pix-st wait';
-  document.getElementById('pixSt').textContent = '⏳ Aguardando pagamento...';
-
-  const qrBox = document.getElementById('pixQRDisp');
-
-  if (qrUrl) {
-    // URL de QR customizada configurada pelo usuário
-    qrBox.innerHTML = `<img src="${qrUrl}" alt="QR PIX" style="width:100%;height:100%;object-fit:contain">`;
-  } else if (chave) {
-    // Gera payload BR Code correto
-    const payload = gerarPixPayload(chave, total, nome, 'BRASIL');
-    const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&ecc=M&data=${encodeURIComponent(payload)}`;
-    qrBox.innerHTML = `<img src="${qrSrc}" alt="QR PIX" style="width:100%;height:100%;object-fit:contain" onerror="this.parentElement.innerHTML='<p style=\'font-size:11px;color:var(--t4);text-align:center;padding:8px\'>Escaneie com o app do banco<br><b>${chave}</b></p>'">`;
-  } else {
-    qrBox.innerHTML = `<div style="opacity:.3;font-size:28px;display:flex;align-items:center;justify-content:center;height:100%">📱</div>`;
+function atualizarInfoPix(){
+  const total=calcularTotalPagamento();
+  const valEl=document.getElementById('pixVal');
+  const stEl=document.getElementById('pixSt');
+  if(valEl)valEl.textContent=fmtR(total);
+  if(stEl){
+    stEl.className='pix-st wait';
+    stEl.textContent=pixAtivo
+      ? '⏳ Aguardando pagamento PIX...'
+      : 'Clique em Finalizar Pedido para exibir o QR Code';
   }
 }
-function confirmarPIX(){
-  document.getElementById('pixSt').className='pix-st done';
-  document.getElementById('pixSt').textContent='✅ Pagamento confirmado!';
-  beepOk();setTimeout(()=>fecharComandaComPagamento(),800);
+
+async function obterComandaIdParaPix(){
+  if(comandaAtiva?.id)return comandaAtiva.id;
+
+  const uid=getCurrentUID();
+  const ownerUid=getOwnerUID();
+  const cliente=document.getElementById('inCliente')?.value.trim()||'';
+  const mesa=document.getElementById('inMesa')?.value.trim()||'';
+  const obs=document.getElementById('inObs')?.value.trim()||'';
+  const criadorNome=document.getElementById('topbarName')?.textContent||'';
+  const docData={
+    uid:ownerUid,ownerUid,
+    atendente:criadorNome,criadorUid:uid,
+    cliente,mesa,obs,
+    itens:carrinho.map(i=>({...i})),
+    status:'aberta',
+    createdAt:new Date().toISOString(),
+    serverTime:firebase.firestore.FieldValue.serverTimestamp()
+  };
+  const ref=await db.collection('comandas').add(docData);
+  comandaAtiva={id:ref.id,cliente,mesa,obs};
+  modoComanda=false;
+  atualizarBannerComanda();
+  return ref.id;
 }
 
 async function finalizarPedido(){
@@ -321,7 +308,26 @@ async function finalizarPedido(){
   if(!carrinho.length){toast('Adicione itens ao carrinho','warning');return;}
   if(!pagSel){toast('Selecione a forma de pagamento','warning');return;}
   const tipo=document.querySelector('.pay-btn.on')?.dataset.tipo;
-  if(tipo==='pix')return;
+  if(tipo==='pix'){
+    if(pixGerando){toast('Gerando QR Code PIX...','info');return;}
+    if(pixAtivo){toast('Aguardando confirmação do PIX','info');return;}
+    const total=calcularTotalPagamento();
+    if(total<=0){toast('Valor inválido para PIX','warning');return;}
+    pixGerando=true;
+    const btn=document.getElementById('btnFinalizar');
+    if(btn)btn.disabled=true;
+    try{
+      const comandaId=await obterComandaIdParaPix();
+      const resultado=await criarPagamentoPix(comandaId,total);
+      if(!resultado.sucesso)toast('Falha ao gerar PIX. Tente novamente.','error');
+    }catch(err){
+      toast('Erro ao gerar PIX: '+err.message,'error');
+    }finally{
+      pixGerando=false;
+      if(btn&&!pixAtivo)btn.disabled=!carrinho.length;
+    }
+    return;
+  }
   if(tipo==='credito'&&creditoMode==='dois'){
     const total=carrinho.reduce((s,i)=>s+i.preco*i.quantidade,0);
     const c1=parseFloat(document.getElementById('cartao1In').value||'0')||0;
@@ -434,6 +440,8 @@ function resetPag(){
   document.querySelectorAll('.cred-tab').forEach(b=>b.classList.remove('on'));
   document.querySelector('.cred-tab[data-m="um"]')?.classList.add('on');
   pagSel=null;parcelaSel=null;creditoMode='um';
+  pixAtivo=false;pixGerando=false;
+  atualizarInfoPix();
 }
 function mostrarPos(){document.getElementById('posDone').classList.add('show');}
 function esconderPos(){document.getElementById('posDone').classList.remove('show');}
@@ -713,7 +721,6 @@ function bindUI(uid){
   document.getElementById('btnNovoPedido')?.addEventListener('click',novoPedido);
   document.getElementById('btnImprimir')?.addEventListener('click',()=>pedidoAtual&&imprimirCupom(pedidoAtual));
   document.getElementById('btnWhatsApp')?.addEventListener('click',()=>pedidoAtual&&enviarWhatsApp(pedidoAtual,localStorage.getItem('whatsappTel')||''));
-  document.getElementById('btnPixOk')?.addEventListener('click',confirmarPIX);
   document.getElementById('cartao1In')?.addEventListener('input',atualizarRest);
   document.getElementById('btnObsTog')?.addEventListener('click',()=>document.getElementById('obsWrap').classList.toggle('open'));
   document.querySelectorAll('.pay-btn').forEach(b=>b.addEventListener('click',()=>selPag(b.dataset.tipo,b.dataset.label)));
@@ -725,3 +732,438 @@ function bindUI(uid){
   document.querySelectorAll('[data-st]').forEach(btn=>btn.addEventListener('click',()=>aplicarFiltroStatus(btn,btn.dataset.st)));
   ['ncCliente','ncMesa','ncObs'].forEach(id=>document.getElementById(id)?.addEventListener('keypress',e=>{if(e.key==='Enter')criarComanda();}));
 }
+
+function parseValidadePix(validadeEm, expiracaoSegundos = 3600) {
+  if (validadeEm != null) {
+    if (typeof validadeEm === 'number') return validadeEm;
+    if (typeof validadeEm === 'string') {
+      const ms = Date.parse(validadeEm);
+      if (!Number.isNaN(ms)) return ms;
+    }
+    if (validadeEm.seconds != null) return validadeEm.seconds * 1000;
+    if (validadeEm._seconds != null) return validadeEm._seconds * 1000;
+    const ms = new Date(validadeEm).getTime();
+    if (!Number.isNaN(ms)) return ms;
+  }
+  return Date.now() + expiracaoSegundos * 1000;
+}
+
+function formatCountdownPix(segundos) {
+  const total = Math.max(0, Math.floor(segundos));
+  const min = Math.floor(total / 60);
+  const sec = total % 60;
+  if (min > 0) return `Válido por ${min}:${String(sec).padStart(2, '0')}`;
+  return `Válido por ${total} segundos`;
+}
+
+// ── SEÇÃO 2: Criar Pagamento PIX (Efi Bank via Firebase Functions) ─────────
+async function criarPagamentoPix(comandaId, valor) {
+  try {
+    // Validar entrada
+    if (!comandaId) {
+      alert('Erro: Comanda não identificada');
+      return { sucesso: false };
+    }
+    if (!valor || valor <= 0) {
+      alert('Erro: Valor inválido');
+      return { sucesso: false };
+    }
+
+    // Mostrar loading
+    mostrarLoading('Gerando QR Code PIX...');
+
+    // Converter valor para centavos (Firebase espera assim)
+    // Exemplo: R$ 150,00 = 15000 centavos
+    const valorCentavos = Math.round(valor * 100);
+    pixValorReaisAtual = valor;
+    pixComandaIdAtual = comandaId;
+
+    // Chamar Firebase Function
+    const criarPixFn = firebase.functions().httpsCallable('criarPagamentoPix');
+    const result = await criarPixFn({
+      comandaId: comandaId,
+      valor: valorCentavos,
+      descricao: `Pagamento comanda ${comandaId}`
+    });
+
+    // Esconder loading
+    fecharLoading();
+
+    // Extrair dados do resultado
+    const { txid, qrcode, pixCopiaECola, qrcodeImagem, validadeEm, expiracaoSegundos } = result.data;
+
+    console.log('✅ PIX criado com sucesso');
+    console.log('TXID:', txid);
+    console.log('Válido até:', validadeEm);
+
+    // Salvar TXID globalmente para referência
+    pixTxidAtual = txid;
+    pixAtivo = true;
+    atualizarInfoPix();
+
+    // Exibir tela de QR Code
+    mostrarTelaQrCode({ qrcode, pixCopiaECola, qrcodeImagem }, valor, txid, validadeEm, expiracaoSegundos);
+
+    // Iniciar monitoramento automático
+    iniciarMonitoramentoPix(comandaId, txid);
+    iniciarVerificacaoPeriodicaPix(comandaId, txid);
+
+    return { sucesso: true, txid, qrcode, pixCopiaECola };
+
+  } catch (erro) {
+    console.error('❌ Erro ao criar PIX:', erro.code || erro.message, erro);
+    fecharLoading();
+    const msgRede = /internal|failed|network|cors/i.test(String(erro.message))
+      ? 'Falha de comunicação com o emulador/servidor (o navegador pode exibir como CORS). Tente de novo em alguns segundos.'
+      : erro.message;
+    alert(
+      'Erro ao gerar QR Code PIX:\n' + msgRede +
+      '\n\nSe aparecer "credenciais inválidas", configure helivi-functions/.env.local ' +
+      'com Client_Id e Client_Secret do painel Efi (aba Homologação) e reinicie o emulador.'
+    );
+    return { sucesso: false, erro: erro.message };
+  }
+}
+
+// ── SEÇÃO 3: Monitorar Comanda em Tempo Real (Firestore Listener) ────────
+async function finalizarPixConfirmado(valorFallback, comandaId) {
+  if (!pixAtivo) return;
+
+  pixAtivo = false;
+  if (pixVerificacaoTimer) {
+    clearInterval(pixVerificacaoTimer);
+    pixVerificacaoTimer = null;
+  }
+
+  fecharTelaQrCode();
+  await onPagamentoConfirmado({ id: comandaId }, valorFallback);
+  pixComandaIdAtual = null;
+}
+
+// Esta função escuta mudanças na comanda e detecta quando PIX é confirmado
+function iniciarMonitoramentoPix(comandaId, txid) {
+  console.log('👁️ Iniciando monitoramento da comanda...');
+
+  // Se já existe listener, cancelar
+  if (pixUnsubscribe) {
+    pixUnsubscribe();
+  }
+
+  // Criar listener Firestore
+  pixUnsubscribe = db.collection('comandas').doc(comandaId)
+    .onSnapshot((doc) => {
+      if (!doc.exists) return;
+
+      const cmd = doc.data();
+
+      // ✅ PIX FOI CONFIRMADO!
+      if (cmd.statusPagamento === 'confirmado') {
+        console.log('✅✅✅ PIX CONFIRMADO!');
+        console.log('Valor:', cmd.pixValor);
+        console.log('Data/Hora:', cmd.pixConfirmadoEm);
+        finalizarPixConfirmado(cmd.pixValor, doc.id);
+      }
+
+      // ⏰ PIX EXPIROU
+      const agora = new Date();
+      const validadeEm = cmd.pixValidadeEm ? new Date(cmd.pixValidadeEm.toDate()) : null;
+
+      if (validadeEm && agora > validadeEm && cmd.statusPagamento === 'aguardando_pix') {
+        console.log('❌ PIX expirou');
+        pixAtivo = false;
+        if (pixVerificacaoTimer) clearInterval(pixVerificacaoTimer);
+
+        mostrarAviso('QR Code expirou. Gere um novo para continuar.');
+      }
+    }, (erro) => {
+      console.error('Erro ao monitorar comanda:', erro);
+    });
+}
+
+// ── SEÇÃO 4: Verificação Manual de Status (Fallback) ───────────────────
+// Se por algum motivo o webhook não chegar, permitir verificação manual
+async function verificarPagamentoPixManualmente(txid) {
+  try {
+    mostrarLoading('Verificando pagamento...');
+
+    const verificarPixFn = firebase.functions().httpsCallable('verificarPagamentoPix');
+    const result = await verificarPixFn({ txid });
+
+    fecharLoading();
+
+    const { pago, status, dataPagamento, valor } = result.data;
+
+    console.log('Status PIX:', status);
+    console.log('Pago?', pago);
+    console.log('Data:', dataPagamento);
+
+    if (pago) {
+      console.log('✅ PIX confirmado!');
+      finalizarPixConfirmado(valor, pixComandaIdAtual);
+      return true;
+    } else {
+      console.log('⏳ PIX ainda aguardando...');
+      mostrarAviso('Pagamento ainda não recebido. Tente novamente em alguns segundos.');
+      return false;
+    }
+  } catch (erro) {
+    console.error('Erro ao verificar PIX:', erro.message);
+    fecharLoading();
+    alert('Erro ao verificar status: ' + erro.message);
+    return false;
+  }
+}
+
+// ── SEÇÃO 5: Verificação Automática Periódica (Opcional) ────────────────
+// Verificar a cada 5 segundos se PIX foi pago (enquanto aguarda webhook)
+function iniciarVerificacaoPeriodicaPix(comandaId, txid, intervalMs = 5000) {
+  console.log('⏰ Iniciando verificação periódica a cada', intervalMs / 1000, 'segundos');
+
+  // Limpar timer anterior se existir
+  if (pixVerificacaoTimer) clearInterval(pixVerificacaoTimer);
+
+  // Verificar a cada intervalo
+  pixVerificacaoTimer = setInterval(async () => {
+    if (!pixAtivo) {
+      clearInterval(pixVerificacaoTimer);
+      return;
+    }
+
+    try {
+      const verificarPixFn = firebase.functions().httpsCallable('verificarPagamentoPix');
+      const result = await verificarPixFn({ txid });
+
+      if (result.data.pago) {
+        console.log('✅ PIX confirmado via verificação periódica');
+        finalizarPixConfirmado(result.data.valor, comandaId);
+      }
+    } catch (erro) {
+      console.error('Erro na verificação periódica:', erro.message);
+    }
+  }, intervalMs);
+}
+
+// ── SEÇÃO 6: UI - Exibir Tela de QR Code ─────────────────────────────────
+function mostrarTelaQrCode(dadosPix, valor, txid, validadeEm, expiracaoSegundos = 3600) {
+  const pixCopiaECola = typeof dadosPix === 'object' ? dadosPix.pixCopiaECola : null;
+  const qrcodeImagem = typeof dadosPix === 'object' ? dadosPix.qrcodeImagem : null;
+  const qrcodeLegacy = typeof dadosPix === 'string' ? dadosPix : dadosPix?.qrcode;
+  // Criar container
+  const container = document.createElement('div');
+  container.id = 'modal-qrcode-pix';
+  container.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+  `;
+
+  // Conteúdo do modal
+  const content = document.createElement('div');
+  content.style.cssText = `
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 500px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  `;
+
+  // Título
+  const title = document.createElement('h2');
+  title.textContent = '💳 Pagamento PIX';
+  title.style.cssText = 'margin: 0 0 16px 0; color: #333; font-size: 24px;';
+
+  // Valor
+  const valorEl = document.createElement('div');
+  valorEl.textContent = `Valor: ${fmtR(valor)}`;
+  valorEl.style.cssText = 'font-size: 20px; color: #666; margin-bottom: 24px; font-weight: bold;';
+
+  const qrImg = document.createElement('img');
+  qrImg.alt = 'QR Code PIX';
+  qrImg.style.cssText = 'width: 300px; height: 300px; margin: 20px auto; border: 2px solid #ddd; border-radius: 8px; display: block;';
+
+  if (qrcodeImagem) {
+    qrImg.src = qrcodeImagem.startsWith('data:') ? qrcodeImagem : `data:image/png;base64,${qrcodeImagem}`;
+  } else if (pixCopiaECola) {
+    qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(pixCopiaECola)}`;
+  } else if (qrcodeLegacy) {
+    qrImg.src = qrcodeLegacy.startsWith('data:') || qrcodeLegacy.startsWith('http')
+      ? qrcodeLegacy
+      : `data:image/png;base64,${qrcodeLegacy}`;
+  }
+
+  const copiaColaEl = document.createElement('div');
+  if (pixCopiaECola) {
+    copiaColaEl.style.cssText = 'margin: 12px 0; padding: 12px; background: #f5f5f5; border-radius: 8px; word-break: break-all; font-size: 11px; color: #555;';
+    copiaColaEl.textContent = pixCopiaECola;
+
+    const btnCopiar = document.createElement('button');
+    btnCopiar.textContent = '📋 Copiar PIX Copia e Cola';
+    btnCopiar.onclick = () => navigator.clipboard.writeText(pixCopiaECola).then(() => mostrarAviso('Código copiado!'));
+    btnCopiar.style.cssText = 'background: #2196F3; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin-top: 8px; font-size: 14px;';
+    copiaColaEl.appendChild(document.createElement('br'));
+    copiaColaEl.appendChild(btnCopiar);
+  }
+
+  const instrucoes = document.createElement('p');
+  instrucoes.textContent = 'Escaneie o QR Code ou copie o código PIX abaixo';
+  instrucoes.style.cssText = 'color: #999; margin: 20px 0; font-size: 14px;';
+
+  // Countdown de expiração
+  const expiraEmMs = parseValidadePix(validadeEm, expiracaoSegundos);
+  let segundos = Math.max(0, Math.round((expiraEmMs - Date.now()) / 1000));
+  const countdown = document.createElement('div');
+  countdown.id = 'countdown-pix';
+  countdown.textContent = formatCountdownPix(segundos);
+  countdown.style.cssText = 'color: #ff6b6b; font-weight: bold; margin: 16px 0;';
+
+  // Botão de verificação manual
+  const btnVerificar = document.createElement('button');
+  btnVerificar.textContent = '🔄 Verificar Pagamento';
+  btnVerificar.onclick = () => verificarPagamentoPixManualmente(txid);
+  btnVerificar.style.cssText = `
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 16px;
+  `;
+
+  // Botão de cancelar
+  const btnCancelar = document.createElement('button');
+  btnCancelar.textContent = '❌ Cancelar';
+  btnCancelar.onclick = fecharTelaQrCode;
+  btnCancelar.style.cssText = `
+    background: #f44336;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-left: 8px;
+    margin-top: 16px;
+  `;
+
+  // Montar
+  content.appendChild(title);
+  content.appendChild(valorEl);
+  content.appendChild(qrImg);
+  if (pixCopiaECola) content.appendChild(copiaColaEl);
+  content.appendChild(instrucoes);
+  content.appendChild(countdown);
+  content.appendChild(btnVerificar);
+  content.appendChild(btnCancelar);
+
+  container.appendChild(content);
+  document.body.appendChild(container);
+
+  // Atualizar countdown a cada segundo
+  if (pixCountdownTimer) clearInterval(pixCountdownTimer);
+  pixCountdownTimer = setInterval(() => {
+    segundos = Math.max(0, Math.round((expiraEmMs - Date.now()) / 1000));
+    const el = document.getElementById('countdown-pix');
+    if (el) el.textContent = formatCountdownPix(segundos);
+    if (segundos <= 0) {
+      clearInterval(pixCountdownTimer);
+      pixCountdownTimer = null;
+      fecharTelaQrCode();
+      mostrarAviso('QR Code expirou');
+    }
+  }, 1000);
+}
+
+// ── SEÇÃO 7: Fechar Tela de QR Code ──────────────────────────────────────
+function fecharTelaQrCode() {
+  const modal = document.getElementById('modal-qrcode-pix');
+  if (modal) modal.remove();
+  pixAtivo = false;
+  pixValorReaisAtual = null;
+  pixComandaIdAtual = null;
+  if (pixUnsubscribe) pixUnsubscribe();
+  if (pixVerificacaoTimer) clearInterval(pixVerificacaoTimer);
+  if (pixCountdownTimer) {
+    clearInterval(pixCountdownTimer);
+    pixCountdownTimer = null;
+  }
+  atualizarInfoPix();
+}
+
+// ── SEÇÃO 8-9: Callback após confirmação do PIX Efi ──────────────────────
+async function onPagamentoConfirmado(comanda, valorFallback) {
+  console.log('PIX Efi confirmado para comanda:', comanda?.id);
+  pixValorReaisAtual = null;
+  beepOk();
+  await fecharComandaComPagamento();
+}
+
+// ── SEÇÃO 10: Funções Auxiliares UI ──────────────────────────────────────
+function mostrarLoading(mensagem = 'Processando...') {
+  let loader = document.getElementById('loader-pix');
+  if (!loader) {
+    loader = document.createElement('div');
+    loader.id = 'loader-pix';
+    loader.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 32px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      z-index: 9998;
+      text-align: center;
+    `;
+    document.body.appendChild(loader);
+  }
+  loader.innerHTML = `
+    <div style="margin-bottom: 16px;">
+      <svg style="animation: spin 1s linear infinite; width: 40px; height: 40px; color: #4CAF50;"
+           viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <circle cx="12" cy="12" r="10" stroke-width="2" opacity="0.3"/>
+        <path d="M12 2a10 10 0 0 1 10 10" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div style="font-size: 16px; color: #333;">${mensagem}</div>
+    <style>
+      @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
+  `;
+}
+
+function fecharLoading() {
+  const loader = document.getElementById('loader-pix');
+  if (loader) loader.remove();
+}
+
+function mostrarAviso(mensagem) {
+  // Toast notification
+  const toast = document.createElement('div');
+  toast.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #ff9800;
+    color: white;
+    padding: 16px 24px;
+    border-radius: 8px;
+    z-index: 9999;
+    animation: slideIn 0.3s ease-out;
+  `;
+  toast.textContent = mensagem;
+  document.body.appendChild(toast);
+
+  setTimeout(() => toast.remove(), 4000);
+}
+

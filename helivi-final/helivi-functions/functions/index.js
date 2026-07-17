@@ -1,7 +1,9 @@
 // functions/index.js — HELIVI v2 com CORS correto
-const { onCall, HttpsError } = require('firebase-functions/v2/https');
+require('./load-efi-env');
+const { onCall, onRequest, HttpsError } = require('firebase-functions/v2/https');
 const { onDocumentCreated }  = require('firebase-functions/v2/firestore');
 const admin = require('firebase-admin');
+const { FieldValue } = require('firebase-admin/firestore');
 
 admin.initializeApp();
 const db   = admin.firestore();
@@ -35,7 +37,7 @@ exports.criarColaborador = onCall({ cors: CORS }, async (req) => {
       uid: userRecord.uid, ownerUid,
       nome: nome.trim(), email: email.trim().toLowerCase(),
       role: perfil || 'atendente', ativo: true,
-      criadoEm: admin.firestore.FieldValue.serverTimestamp(),
+      criadoEm: FieldValue.serverTimestamp(),
     });
     return { sucesso: true, uid: userRecord.uid, mensagem: `Colaborador "${nome}" criado com sucesso!` };
   } catch (err) {
@@ -54,7 +56,7 @@ exports.editarColaborador = onCall({ cors: CORS }, async (req) => {
   if (senha && senha.length >= 6) authUpdate.password = senha;
   try {
     if (uid) await auth.updateUser(uid, authUpdate);
-    const update = { nome: nome.trim(), role: perfil || 'atendente', atualizadoEm: admin.firestore.FieldValue.serverTimestamp() };
+    const update = { nome: nome.trim(), role: perfil || 'atendente', atualizadoEm: FieldValue.serverTimestamp() };
     if (email) update.email = email.trim().toLowerCase();
     await db.collection('usuarios').doc(docId).update(update);
     return { sucesso: true, mensagem: 'Colaborador atualizado!' };
@@ -119,4 +121,132 @@ exports.onKdsBalcaoCriado = onDocumentCreated('kds_balcao/{id}', async (event) =
     await event.data.ref.update({ atendente: user.displayName || user.email.split('@')[0] });
   } catch (e) {}
   return null;
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 8-10. INTEGRAÇÃO PIX — EFI BANK
+// ═══════════════════════════════════════════════════════════════════════════
+// Módulo para pagamentos via PIX (Pix Instantâneo do Banco Central)
+const pix = require('./pix');
+
+// 8. CRIAR PAGAMENTO PIX — Gera QR Code para cliente pagar
+// Entrada: { comandaId, valor, descricao }
+// Retorno: { sucesso, txid, qrcode, validadeEm }
+exports.criarPagamentoPix = onCall({ cors: "*", invoker: 'public' }, async (req) => {
+  const uid = checarAuth(req.auth);
+  const { comandaId, valor, descricao } = req.data;
+
+  // Valida entrada
+  if (!comandaId) throw new HttpsError('invalid-argument', 'ID da comanda obrigatório.');
+  if (!valor || valor <= 0) throw new HttpsError('invalid-argument', 'Valor inválido.');
+
+  try {
+    // Cria o identificador único concatenando UID + ID da comanda
+    const identificador = `${uid}-${comandaId}`;
+
+    // Chama função do módulo PIX para gerar cobrança
+    const cobPix = await pix.criarCobPix(valor, descricao || 'Pagamento de comanda', identificador);
+
+    // Salva a transação PIX no Firestore para referência futura
+    const comandaRef = db.collection('comandas').doc(comandaId);
+    const comandaSnap = await comandaRef.get();
+
+    if (!comandaSnap.exists) {
+      throw new HttpsError(
+        'not-found',
+        `Comanda "${comandaId}" não encontrada. Em localhost, crie a comanda com o emulador Firestore ativo (npm run serve).`
+      );
+    }
+
+    await comandaRef.update({
+      pixTxid: cobPix.txid,
+      pixValor: valor / 100,
+      pixQrCode: cobPix.qrcode,
+      pixCopiaECola: cobPix.pixCopiaECola || null,
+      pixGeradoEm: FieldValue.serverTimestamp(),
+      pixValidadeEm: cobPix.validadeEm,
+      statusPagamento: 'aguardando_pix',
+    });
+
+    return {
+      sucesso: true,
+      txid: cobPix.txid,
+      qrcode: cobPix.qrcode,
+      pixCopiaECola: cobPix.pixCopiaECola,
+      qrcodeImagem: cobPix.qrcodeImagem,
+      validadeEm: cobPix.validadeEm.toISOString(),
+      expiracaoSegundos: cobPix.expiracaoSegundos,
+      mensagem: 'QR Code PIX gerado com sucesso!',
+    };
+  } catch (err) {
+    console.error('Erro ao criar pagamento PIX:', err.message);
+    throw new HttpsError('internal', `Erro ao gerar PIX: ${err.message}`);
+  }
+});
+
+// 9. VERIFICAR STATUS DO PAGAMENTO PIX
+// Entrada: { txid }
+// Retorno: { sucesso, status, pago, dataPagamento, valor }
+exports.verificarPagamentoPix = onCall({ cors: CORS }, async (req) => {
+  const uid = checarAuth(req.auth);
+  const { txid } = req.data;
+
+  // Valida entrada
+  if (!txid) throw new HttpsError('invalid-argument', 'TXID obrigatório.');
+
+  try {
+    // Consulta a API EFI para verificar status do PIX
+    const statusPix = await pix.verificarStatusPix(txid);
+
+    // Se o PIX foi pago, atualiza a comanda no Firestore
+    if (statusPix.pago) {
+      const cmdSnap = await db.collection('comandas')
+        .where('pixTxid', '==', txid)
+        .limit(1)
+        .get();
+
+      if (!cmdSnap.empty) {
+        await cmdSnap.docs[0].ref.update({
+          statusPagamento: 'confirmado',
+          pixConfirmadoEm: FieldValue.serverTimestamp(),
+        });
+      }
+    }
+
+    return {
+      sucesso: true,
+      status: statusPix.status,
+      pago: statusPix.pago,
+      txid: statusPix.txid,
+      dataPagamento: statusPix.dataPagamento,
+      valor: statusPix.valor,
+    };
+  } catch (err) {
+    console.error('Erro ao verificar PIX:', err.message);
+    throw new HttpsError('internal', `Erro ao verificar status: ${err.message}`);
+  }
+});
+
+// 10. WEBHOOK PIX — Recebe confirmação de pagamento do EFI Bank (HTTP POST)
+exports.webhookPagamentoPix = onRequest({ cors: false, invoker: 'public' }, async (req, res) => {
+  if (req.method !== 'POST') {
+    res.status(405).send('Method Not Allowed');
+    return;
+  }
+
+  try {
+    const dados = pix.parseWebhookEfi(req.body);
+
+    if (!dados || !dados.txid || dados.valor === undefined) {
+      console.error('Webhook PIX payload inválido:', JSON.stringify(req.body));
+      res.status(400).json({ erro: 'Dados incompletos no webhook.' });
+      return;
+    }
+
+    const resultado = await pix.salvarWebhookPix(dados);
+    res.status(200).json({ sucesso: true, mensagem: resultado.mensagem });
+  } catch (err) {
+    console.error('Erro ao processar webhook:', err.message);
+    res.status(500).json({ erro: err.message });
+  }
 });
