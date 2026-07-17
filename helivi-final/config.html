@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <title>Configurações</title>
     <link rel="stylesheet" href="css/styles.css" />
-    <link rel="icon" type="image/png" href="./image/logo-favicon.png" />
+    <link rel="icon" type="image/svg+xml" href="./image/logo.svg" />
   </head>
   <body>
     <aside class="sidebar" id="sidebar">
@@ -29,7 +29,7 @@
       <div class="sidebar-brand">
         <div class="sb-logo-wrap">
           <img
-            src="./image/logo.png"
+            src="./image/logo.svg"
             alt="HELIVI"
             onerror="
               this.style.display = 'none';
@@ -258,59 +258,169 @@
           </div>
         </div>
         <div class="card" style="padding: 22px; margin-bottom: 18px">
-          <div class="cfg-title">PIX</div>
+          <div
+            style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px"
+          >
+            <div class="cfg-title" style="margin-bottom: 0">Pagamento PIX</div>
+            <div
+              id="pixGatewayAtivoBadge"
+              style="
+                display: none;
+                align-items: center;
+                gap: 7px;
+                padding: 7px 11px;
+                border-radius: 999px;
+                border: 1px solid rgba(34, 197, 94, 0.35);
+                background: rgba(34, 197, 94, 0.12);
+                color: #16a34a;
+                font-size: 12px;
+                font-weight: 700;
+                white-space: nowrap;
+              "
+            >
+              <span
+                style="
+                  width: 8px;
+                  height: 8px;
+                  border-radius: 50%;
+                  background: #22c55e;
+                  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.14);
+                "
+              ></span>
+              <span id="pixGatewayAtivoTexto">Carregando...</span>
+            </div>
+          </div>
+          <p style="font-size: 13px; color: var(--t3); line-height: 1.5; margin: 0 0 14px">
+            Escolha o gateway ativo e configure as credenciais. O PDV usa o provedor
+            selecionado automaticamente. Segredos são gravados com segurança e não
+            podem ser lidos pelo navegador após salvar.
+          </p>
           <div class="field">
-            <label>Tipo de Chave</label
-            ><select class="input" id="cPixTipo">
-              <option value="cpf">CPF</option>
-              <option value="cnpj">CNPJ</option>
-              <option value="email">E-mail</option>
-              <option value="telefone">Telefone</option>
-              <option value="aleatoria">Chave Aleatória</option>
+            <label>Gateway PIX ativo</label>
+            <select class="input" id="pixGateway">
+              <option value="efi">Efi Bank</option>
+              <option value="mercadopago">Mercado Pago</option>
             </select>
           </div>
-          <div class="field">
-            <label>Chave PIX</label
-            ><input
-              class="input"
-              id="cPixChave"
-              placeholder="Digite sua chave PIX"
-            />
-          </div>
-          <div class="field">
-            <label>URL do QR Code (opcional)</label
-            ><input class="input" id="cPixQR" placeholder="https://..." />
-            <p style="font-size: 11px; color: var(--t4); margin-top: 4px">
-              Se vazio, o QR é gerado automaticamente
-            </p>
-          </div>
-          <div style="display: flex; align-items: center; gap: 12px">
-            <button class="btn btn-ghost btn-sm" id="btnPreviewPix">
-              <svg
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-              Ver QR Code
-            </button>
-            <div id="pixPreviewWrap" style="display: none">
-              <img
-                id="pixPreviewImg"
-                style="
-                  width: 90px;
-                  height: 90px;
-                  border: 1px solid var(--brd);
-                  border-radius: var(--r2);
-                  object-fit: contain;
-                "
+          <div id="credEfi">
+            <div class="field">
+              <label>Client ID (Efi)</label>
+              <input
+                class="input"
+                id="efiClientId"
+                placeholder="Client_Id do painel Efi"
+                autocomplete="off"
               />
             </div>
+            <div class="field">
+              <label>Client Secret (Efi)</label>
+              <input
+                class="input"
+                id="efiClientSecret"
+                type="password"
+                placeholder="•••• (deixe vazio para manter o salvo)"
+                autocomplete="new-password"
+              />
+            </div>
+            <div class="field">
+              <label>Chave PIX (Efi)</label>
+              <input
+                class="input"
+                id="efiPixKey"
+                placeholder="Chave PIX cadastrada na Efi"
+                autocomplete="off"
+              />
+            </div>
+            <p style="font-size: 12px; color: var(--t4); margin: 0">
+              Certificado <code>.pem</code> continua em
+              <code>helivi-functions/functions/</code> (mTLS obrigatório da Efi).
+            </p>
+          </div>
+          <div id="credMp" style="display: none">
+            <div class="field">
+              <label>Access Token PRODUÇÃO (APP_USR-)</label>
+              <input
+                class="input"
+                id="mpAccessTokenProducao"
+                type="password"
+                placeholder="Credenciais de produção → Mercado Pago"
+                autocomplete="new-password"
+              />
+            </div>
+            <details style="margin-top: 14px; font-size: 13px; color: var(--t3)">
+              <summary style="cursor: pointer; font-weight: 600; color: var(--t2)">
+                Opções avançadas (sandbox / testes)
+              </summary>
+              <div class="field" style="margin-top: 12px">
+                <label>Token SANDBOX opcional (APP_USR vendedor teste)</label>
+                <input
+                  class="input"
+                  id="mpAccessTokenSandbox"
+                  type="password"
+                  placeholder="Somente para testes sem cobrança real"
+                  autocomplete="new-password"
+                />
+              </div>
+              <div class="cfg-row" style="margin-top: 8px">
+                <div>
+                  <div class="cfg-lbl">Modo teste Mercado Pago</div>
+                  <div class="cfg-dsc" id="mpSandboxHint">Desmarcado = PIX real (produção)</div>
+                </div>
+                <label class="toggle"
+                  ><input type="checkbox" id="mpAmbienteTeste" /><span class="tog-tr"></span
+                ></label>
+              </div>
+            </details>
+            <div class="field" style="display: none">
+              <input class="input" id="mpAccessTokenTeste" type="password" />
+            </div>
+            <p style="font-size: 12px; color: var(--t3); margin: 12px 0 0; line-height: 1.6; padding: 10px; background: rgba(34,197,94,0.08); border-radius: var(--r2); border: 1px solid rgba(34,197,94,0.2)">
+              <strong>Produção (padrão):</strong> cole o <code>APP_USR</code> de
+              <strong>Credenciais de produção</strong>, deixe <em>Modo teste</em> desmarcado.
+              Exige chave PIX cadastrada no app Mercado Pago. Token <code>TEST-</code> não funciona.
+            </p>
+          </div>
+        </div>
+        <div class="card" style="padding: 22px; margin-bottom: 18px">
+          <div class="cfg-title">Maquininha de Cartão</div>
+          <p style="font-size: 13px; color: var(--t3); line-height: 1.5; margin: 0 0 14px">
+            Integração com maquininha física para Crédito/Débito. O PDV envia o valor
+            automaticamente para o terminal. Credenciais ficam protegidas no servidor
+            (mesmo padrão do PIX).
+          </p>
+          <div class="field">
+            <label>Maquininha de cartão ativa</label>
+            <select class="input" id="maquininhaAtiva">
+              <option value="">Nenhuma (registro manual no PDV)</option>
+              <option value="mercadopago_point">Mercado Pago Point</option>
+            </select>
+          </div>
+          <div id="credMpPoint" style="display: none">
+            <div class="field">
+              <label>Device ID da maquininha (terminal_id)</label>
+              <input
+                class="input"
+                id="mpPointDeviceId"
+                placeholder="Ex: PAX_A910__SMARTPOS1234345545"
+                autocomplete="off"
+              />
+            </div>
+            <div class="field">
+              <label>Access Token Point (APP_USR-, opcional)</label>
+              <input
+                class="input"
+                id="mpPointAccessToken"
+                type="password"
+                placeholder="Deixe vazio para reutilizar o Token PRODUÇÃO do PIX"
+                autocomplete="new-password"
+              />
+            </div>
+            <p style="font-size: 12px; color: var(--t3); margin: 12px 0 0; line-height: 1.6; padding: 10px; background: rgba(59,130,246,0.08); border-radius: var(--r2); border: 1px solid rgba(59,130,246,0.2)">
+              <strong>Mercado Pago Point:</strong> cadastre a maquininha no app MP (modo PDV)
+              e copie o <code>device_id</code> em
+              <em>Suas integrações → Point → Terminais</em>. Modelos compatíveis:
+              Point Pro, Smart e Mini com integração via API/Cloud.
+            </p>
           </div>
         </div>
         <div class="card" style="padding: 22px; margin-bottom: 18px">
@@ -550,7 +660,13 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="js/config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-init.js"></script>
     <script src="js/firebase.js"></script>
+    <script src="js/data-firebase.js"></script>
+    <script src="js/data-supabase.js"></script>
+    <script src="js/data.js"></script>
     <script src="js/icons.js"></script>
     <script src="js/auth.js"></script>
     <script>
@@ -563,17 +679,89 @@
           localStorage.getItem("msgFinal") || "";
         document.getElementById("cWA").value =
           localStorage.getItem("whatsappTel") || "";
-        document.getElementById("cPixChave").value =
-          localStorage.getItem("pixChave") || "";
-        document.getElementById("cPixTipo").value =
-          localStorage.getItem("pixTipo") || "cpf";
-        document.getElementById("cPixQR").value =
-          localStorage.getItem("pixQRUrl") || "";
         document.getElementById("tSom").checked =
           localStorage.getItem("somAtivo") !== "false";
         document.getElementById("tImp").checked =
           localStorage.getItem("impressaoAuto") === "true";
-        document.getElementById("btnSalvar").addEventListener("click", () => {
+
+        const pixGatewayEl = document.getElementById("pixGateway");
+        const credEfiEl = document.getElementById("credEfi");
+        const credMpEl = document.getElementById("credMp");
+        const mpAmbienteTesteEl = document.getElementById("mpAmbienteTeste");
+        const mpAccessTokenSandboxEl = document.getElementById("mpAccessTokenSandbox");
+        const mpAccessTokenProducaoEl = document.getElementById("mpAccessTokenProducao");
+        const mpAccessTokenTesteEl = document.getElementById("mpAccessTokenTeste");
+        const maquininhaAtivaEl = document.getElementById("maquininhaAtiva");
+        const credMpPointEl = document.getElementById("credMpPoint");
+        const mpPointDeviceIdEl = document.getElementById("mpPointDeviceId");
+        const mpPointAccessTokenEl = document.getElementById("mpPointAccessToken");
+        const pixGatewayAtivoBadgeEl = document.getElementById("pixGatewayAtivoBadge");
+        const pixGatewayAtivoTextoEl = document.getElementById("pixGatewayAtivoTexto");
+
+        function mostrarGatewayPixAtivo(gateway) {
+          const nomes = {
+            efi: "Efi Bank ativo",
+            mercadopago: "Mercado Pago ativo",
+          };
+          if (!nomes[gateway]) {
+            pixGatewayAtivoBadgeEl.style.display = "none";
+            return;
+          }
+          pixGatewayAtivoTextoEl.textContent = nomes[gateway];
+          pixGatewayAtivoBadgeEl.style.display = "inline-flex";
+        }
+
+        function atualizarCamposMaquininha() {
+          const m = maquininhaAtivaEl.value;
+          credMpPointEl.style.display = m === "mercadopago_point" ? "block" : "none";
+        }
+
+        function atualizarCamposPixGateway() {
+          const g = pixGatewayEl.value;
+          credEfiEl.style.display = g === "efi" ? "block" : "none";
+          credMpEl.style.display = g === "mercadopago" ? "block" : "none";
+        }
+
+        function atualizarModoMpTeste() {
+          const teste = mpAmbienteTesteEl.checked;
+          document.getElementById("mpSandboxHint").textContent = teste
+            ? "Sandbox — somente com token vendedor teste"
+            : "Produção — PIX real com chave PIX cadastrada";
+        }
+
+        pixGatewayEl.addEventListener("change", atualizarCamposPixGateway);
+        mpAmbienteTesteEl.addEventListener("change", atualizarModoMpTeste);
+        maquininhaAtivaEl.addEventListener("change", atualizarCamposMaquininha);
+
+        // Carrega gateway ativo (segredos não são legíveis pelo cliente)
+        data.config.getPagamentos()
+          .then((pag) => {
+            if (pag && pag.gatewayAtivo) {
+              pixGatewayEl.value = pag.gatewayAtivo;
+              mostrarGatewayPixAtivo(pag.gatewayAtivo);
+            }
+            if (pag && pag.mpAmbienteTeste === true) {
+              document.getElementById("mpAmbienteTeste").checked = true;
+            } else if (pag && pag.mpAmbienteTeste === false) {
+              document.getElementById("mpAmbienteTeste").checked = false;
+            }
+            if (pag && pag.maquininhaAtiva) {
+              maquininhaAtivaEl.value = pag.maquininhaAtiva;
+            }
+            if (pag && pag.mpPointDeviceId) {
+              mpPointDeviceIdEl.value = pag.mpPointDeviceId;
+            }
+            atualizarCamposPixGateway();
+            atualizarModoMpTeste();
+            atualizarCamposMaquininha();
+          })
+          .catch(() => {
+            atualizarCamposPixGateway();
+            atualizarModoMpTeste();
+            atualizarCamposMaquininha();
+          });
+
+        document.getElementById("btnSalvar").addEventListener("click", async () => {
           localStorage.setItem(
             "nomeEstab",
             document.getElementById("cNome").value.trim() || "HELIVI",
@@ -587,18 +775,6 @@
             document.getElementById("cWA").value.trim(),
           );
           localStorage.setItem(
-            "pixChave",
-            document.getElementById("cPixChave").value.trim(),
-          );
-          localStorage.setItem(
-            "pixTipo",
-            document.getElementById("cPixTipo").value,
-          );
-          localStorage.setItem(
-            "pixQRUrl",
-            document.getElementById("cPixQR").value.trim(),
-          );
-          localStorage.setItem(
             "somAtivo",
             document.getElementById("tSom").checked,
           );
@@ -606,22 +782,61 @@
             "impressaoAuto",
             document.getElementById("tImp").checked,
           );
-          toast("Configurações salvas!", "success");
-        });
-        document
-          .getElementById("btnPreviewPix")
-          ?.addEventListener("click", () => {
-            const ch = document.getElementById("cPixChave").value.trim(),
-              qr = document.getElementById("cPixQR").value.trim();
-            if (!ch && !qr) {
-              toast("Configure a chave PIX primeiro", "warning");
-              return;
+
+          const gatewayAtivo = pixGatewayEl.value;
+          const efiClientId = document.getElementById("efiClientId").value.trim();
+          const efiClientSecret = document.getElementById("efiClientSecret").value.trim();
+          const efiPixKey = document.getElementById("efiPixKey").value.trim();
+          const mpAccessTokenSandbox = mpAccessTokenSandboxEl.value.trim();
+          const mpAccessTokenTeste = mpAccessTokenTesteEl.value.trim();
+          const mpAccessTokenProducao = mpAccessTokenProducaoEl.value.trim();
+          const mpAmbienteTeste = mpAmbienteTesteEl.checked;
+          const maquininhaAtiva = maquininhaAtivaEl.value;
+          const mpPointDeviceId = mpPointDeviceIdEl.value.trim();
+          const mpPointAccessToken = mpPointAccessTokenEl.value.trim();
+
+          if (maquininhaAtiva === "mercadopago_point" && !mpPointDeviceId) {
+            toast("Informe o Device ID da maquininha Point.", "warning");
+            return;
+          }
+
+          if (gatewayAtivo === "mercadopago") {
+            for (const t of [mpAccessTokenSandbox, mpAccessTokenProducao, mpAccessTokenTeste]) {
+              if (t.startsWith("TEST-")) {
+                toast(
+                  "Token TEST- não funciona no PIX (/v1/orders). Use APP_USR da conta vendedor teste.",
+                  "warning",
+                );
+                return;
+              }
             }
-            document.getElementById("pixPreviewImg").src =
-              qr ||
-              `https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent(ch)}`;
-            document.getElementById("pixPreviewWrap").style.display = "block";
-          });
+          }
+
+          try {
+            await data.config.salvarPagamentoPix({
+              gatewayAtivo,
+              mpAmbienteTeste,
+              efiClientId,
+              efiClientSecret,
+              efiPixKey,
+              mpAccessTokenProducao,
+              mpAccessTokenSandbox,
+              maquininhaAtiva,
+              mpPointDeviceId,
+              mpPointAccessToken,
+            });
+
+            mostrarGatewayPixAtivo(gatewayAtivo);
+            toast("Configurações salvas!", "success");
+            document.getElementById("efiClientSecret").value = "";
+            mpAccessTokenSandboxEl.value = "";
+            mpAccessTokenProducaoEl.value = "";
+            mpPointAccessTokenEl.value = "";
+          } catch (err) {
+            console.error(err);
+            toast("Erro ao salvar PIX: " + (err.message || err), "error");
+          }
+        });
         document
           .getElementById("btnSair")
           .addEventListener("click", logoutUser);

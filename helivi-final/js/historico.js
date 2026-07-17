@@ -32,10 +32,9 @@ function load(uid, f) {
   } else if (f === "mes")
     ini = new Date(agora.getFullYear(), agora.getMonth(), 1);
   // Busca simples sem índice composto, ordena no cliente
-  let q = db.collection("pedidos").where("uid", "==", uid).limit(500);
-  q.get()
-    .then((snap) => {
-      let list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  data.pedidos
+    .listByOwner(uid, 500)
+    .then((list) => {
       // Filtro por data no cliente
       if (ini)
         list = list.filter((p) => {
@@ -96,12 +95,8 @@ function renderHist(list) {
     .join("");
 }
 function detalhe(id) {
-  db.collection("pedidos")
-    .doc(id)
-    .get()
-    .then((doc) => {
-      if (!doc.exists) return;
-      const p = { id: doc.id, ...doc.data() };
+  data.pedidos.get(id).then((p) => {
+      if (!p) return;
       document.getElementById("detBody").innerHTML = `
       <p style="font-size:11px;font-weight:700;color:var(--text-500);text-transform:uppercase;letter-spacing:.5px">Pedido #${p.numeroPedido || p.id.slice(-6).toUpperCase()}</p>
       <p style="font-size:13px;color:var(--text-500);margin-top:2px">${fmtData(p.serverTime || p.createdAt)}</p>

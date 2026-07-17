@@ -18,9 +18,10 @@ let ultimoCount = 0;
 
 document.addEventListener("DOMContentLoaded", () => {
   requireAuth((user, perfil, ownerUid) => {
+    // KDS filtra pelo tenant (ownerUid), não pelo UID do login de cozinha/balcão.
     uidAtual = ownerUid || window.OWNER_UID || user.uid;
     window.OWNER_UID = uidAtual;
-    iniciarKDS(user.uid);
+    iniciarKDS(uidAtual);
     iniciarRelogio();
   });
 });
@@ -28,15 +29,11 @@ document.addEventListener("DOMContentLoaded", () => {
 function iniciarKDS(uid) {
   const inicio = new Date();
   inicio.setHours(0, 0, 0, 0);
-  db.collection(COLECAO)
-    .where("uid", "==", uid)
-    .limit(200)
-    .onSnapshot((snap) => {
+  const setor = window.KDS_SETOR === "balcao" ? "balcao" : "cozinha";
+  data.kds.subscribe(setor, uid, (lista) => {
       const inicioDia = new Date();
       inicioDia.setHours(0, 0, 0, 0);
-      const novos = snap.docs
-        .map((d) => ({ id: d.id, ...d.data() }))
-        .filter((p) => {
+      const novos = lista.filter((p) => {
           const dt = p.serverTime?.toDate
             ? p.serverTime.toDate()
             : new Date(p.createdAt || 0);
@@ -91,8 +88,8 @@ function renderCard(p) {
     <div class="kds-item-row">
       <div class="kds-item-qtd">${i.quantidade}</div>
       <div class="kds-item-info">
-        <div class="kds-item-nome">${i.nome}</div>
-        ${i.obs ? `<div class="kds-item-obs">📝 ${i.obs}</div>` : ""}
+        <div class="kds-item-nome">${escHtml(i.nome)}</div>
+        ${i.obs ? `<div class="kds-item-obs">📝 ${escHtml(i.obs)}</div>` : ""}
       </div>
     </div>`,
     )
@@ -105,8 +102,8 @@ function renderCard(p) {
     ${ehNovo ? `<div class="kds-card-new-badge">🆕 NOVO PEDIDO</div>` : ""}
     <div class="kds-card-head">
       <div>
-        <div class="kds-card-num">#${p.numeroPedido || p.id.slice(-4).toUpperCase()}</div>
-        <div class="kds-card-cliente">${p.cliente || p.mesa ? (p.cliente || "") + (p.mesa ? " · Mesa " + p.mesa : "") : "—"}</div>
+        <div class="kds-card-num">#${escHtml(p.numeroPedido || p.id.slice(-4).toUpperCase())}</div>
+        <div class="kds-card-cliente">${escHtml(p.cliente || p.mesa ? (p.cliente || "") + (p.mesa ? " · Mesa " + p.mesa : "") : "—")}</div>
       </div>
       <div class="kds-card-right">
         <div class="kds-card-hora">${hora}</div>
@@ -114,7 +111,7 @@ function renderCard(p) {
       </div>
     </div>
     <div class="kds-card-items">${itensHtml}</div>
-    ${p.obsGeral ? `<div class="kds-card-obs">📝 ${p.obsGeral}</div>` : ""}
+    ${p.obsGeral ? `<div class="kds-card-obs">📝 ${escHtml(p.obsGeral)}</div>` : ""}
     <div class="kds-card-actions">${botoesHtml}</div>
   </div>`;
 }
@@ -146,13 +143,10 @@ function botoesStatus(id, status) {
 
 async function mudarStatus(id, novoStatus) {
   try {
-    await db
-      .collection(COLECAO)
-      .doc(id)
-      .update({
+    const setor = window.KDS_SETOR === "balcao" ? "balcao" : "cozinha";
+    await data.kds.update(setor, id, {
         status: novoStatus,
-        [`statusAt_${novoStatus}`]:
-          firebase.firestore.FieldValue.serverTimestamp(),
+        [`statusAt_${novoStatus}`]: data.serverTimestamp(),
       });
     // Feedback sonoro
     if (novoStatus === "pronto") beepOk();

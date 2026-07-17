@@ -31,10 +31,9 @@ function loadLucro(uid, f) {
     ini.setDate(agora.getDate() - 7);
   } else if (f === "mes")
     ini = new Date(agora.getFullYear(), agora.getMonth(), 1);
-  let q = db.collection("pedidos").where("uid", "==", uid).limit(500);
-  q.get()
-    .then((snap) => {
-      let list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  data.pedidos
+    .listByOwner(uid, 500)
+    .then((list) => {
       if (ini)
         list = list.filter((p) => {
           const dt = p.serverTime?.toDate

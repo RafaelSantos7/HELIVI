@@ -7,18 +7,24 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Balcão de Bebidas</title>
 <link rel="stylesheet" href="css/styles.css">
-<link rel="icon" type="image/png" href="./image/logo-favicon.png" />
+<link rel="icon" type="image/svg+xml" href="./image/logo.svg" />
 </head>
 <body>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="js/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-init.js"></script>
 <script src="js/firebase.js"></script>
+<script src="js/data-firebase.js"></script>
+<script src="js/data-supabase.js"></script>
+<script src="js/data.js"></script>
 <script src="js/icons.js"></script>
 <script src="js/auth.js"></script>
 <body class="kds-page">
 <header class="kds-top">
-  <div class="kds-logo-wrap"><img src="./image/logo.png" alt="HELIVI" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="kds-logo-fb"><div class="kds-logo-mk">H</div><div class="kds-logo-nm">HELIVI</div></div></div>
+  <div class="kds-logo-wrap"><img src="./image/logo.svg" alt="HELIVI" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="kds-logo-fb"><div class="kds-logo-mk">H</div><div class="kds-logo-nm">HELIVI</div></div></div>
   <div class="kds-div"></div>
   <div class="kds-ttl">Balcão de Bebidas</div>
   <span class="kds-sec bl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M8 22h8"/><path d="M12 11v11"/><path d="M4 6l2 12h12L20 6H4z"/></svg> Balcão</span>

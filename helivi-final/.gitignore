@@ -1,0 +1,49 @@
+# Dependências
+node_modules/
+**/node_modules/
+
+# Credenciais e secrets (NUNCA commitar)
+.env
+.env.local
+.env.*.local
+helivi-functions/.env.local
+helivi-functions/functions/.env.local
+helivi-api/.env.local
+helivi-api/.env
+js/config.js
+helivi-functions/functions/efi.local.json
+
+# Certificados Efi Bank
+*.pem
+*.p12
+*.pfx
+
+# Logs e debug
+*.log
+npm-debug.log*
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+pubsub-debug.log
+
+# Firebase / emuladores
+.firebase/
+firebase-export-*/
+.firebaserc.local
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build / cache
+dist/
+.cache/
+*.tsbuildinfo

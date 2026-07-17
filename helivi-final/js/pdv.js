@@ -13,6 +13,13 @@ let pagSel=null, parcelaSel=null, creditoMode='um';
 let abaAtiva='produtos', todasComandas=[], filtroStatus='todos';
 let comandaAtiva=null; // { id, cliente, mesa, obs }
 let modoComanda=false; // true = enviando itens para comanda (sem pagar), false = venda direta
+let pixAtivo=false, pixGerando=false, pixTxidAtual=null, pixComandaIdAtual=null, pixValorReaisAtual=null;
+let pixMpOrderIdAtual=null, pixCancelando=false;
+let pixUnsubscribe=null, pixVerificacaoTimer=null, pixCountdownTimer=null;
+// Maquininha de cartão (Point MP e futuras marcas via Factory no backend)
+let maquininhaAtivaConfig=''; // ex: 'mercadopago_point' ou '' (manual)
+let cartaoAtivo=false, cartaoGerando=false, cartaoIntentIdAtual=null, cartaoComandaIdAtual=null;
+let cartaoVerificacaoTimer=null, cartaoDeviceIdAtual=null;
 
 // ── Init ──────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
@@ -26,15 +33,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if(nt) nt.textContent=localStorage.getItem('nomeEstab')||'HELIVI';
     loadProds(oUid);
     loadComandas(oUid);
+    carregarConfigMaquininha();
     bindUI(oUid);
   });
 });
 
 // ══ PRODUTOS ═════════════════════════════════════════════
 function loadProds(uid){
-  db.collection('produtos').where('uid','==',uid)
-    .onSnapshot(snap=>{
-      todosProdutos=snap.docs.map(d=>({id:d.id,...d.data()}))
+  data.produtos.subscribeByOwner(uid, lista=>{
+      todosProdutos=lista
         .sort((a,b)=>(a.categoria||'').localeCompare(b.categoria||'')||(a.nome||'').localeCompare(b.nome||''));
       renderCats(); renderProds();
     });
@@ -67,9 +74,9 @@ function renderProds(catF='',busca=''){
       <div class="prods-grid">${prods.map(p=>`
         <button class="prod-btn" id="pb-${p.id}" onclick="addItem('${p.id}')">
           <div class="pb-add">+</div>
-          <div class="pb-nm">${p.nome}</div>
+          <div class="pb-nm">${escHtml(p.nome)}</div>
           <div class="pb-pr">${fmtR(p.preco)}</div>
-          <div class="pb-ct">${p.categoria||''}</div>
+          <div class="pb-ct">${escHtml(p.categoria||'')}</div>
         </button>`).join('')}</div>
     </div>`).join('');
 }
@@ -154,12 +161,20 @@ function atualizarBotaoFinalizar(){
   }
 }
 
+// Numeração de pedido por ESTABELECIMENTO (ownerUid), atômica via transação.
+// Evita numeração fragmentada entre atendentes e duplicidade sob concorrência.
+async function proximoNumeroPedido(ownerUid){
+  return data.config.nextPedidoNumber(ownerUid);
+}
+
 // ══ ENVIAR PEDIDO PARA COMANDA (sem pagar) ════════════════
 async function enviarParaComanda(){
   if(!carrinho.length){toast('Adicione itens ao carrinho','warning');return;}
   if(!comandaAtiva?.id){toast('Nenhuma comanda selecionada','warning');return;}
 
-  const uid=getCurrentUID();
+  // ownerUid = chave do tenant (numeração, KDS, filtros); criadorUid = auditoria
+  const ownerUid=getOwnerUID();
+  const criadorUid=getCurrentUID();
   const btn=document.getElementById('btnFinalizar');
   const origHTML=btn.innerHTML;
   btn.disabled=true;
@@ -170,44 +185,43 @@ async function enviarParaComanda(){
     const mesa=document.getElementById('inMesa')?.value.trim()||comandaAtiva.mesa||'';
     const obsGeral=document.getElementById('inObs')?.value.trim()||'';
 
-    // Número de envio (sub-pedido dentro da comanda)
+    // Número de envio (sub-pedido dentro da comanda) — atômico por estabelecimento
     let numPedido=1;
-    try{const r=db.collection('config').doc('cnt_'+uid),s=await r.get();numPedido=s.exists?s.data().ultimo+1:1;await r.set({ultimo:numPedido});}catch(e){}
+    try{numPedido=await proximoNumeroPedido(ownerUid);}catch(e){}
 
     // Separação KDS — só os itens do carrinho atual (novos)
     const CATS_COZ=['comida','lanche','porção','porcao','entrada','combo'];
     const itensCoz=carrinho.filter(i=>CATS_COZ.some(k=>(i.categoria||'').toLowerCase().includes(k)));
     const itensBeb=carrinho.filter(i=>(i.categoria||'').toLowerCase().includes('bebida'));
 
-    // Envia para KDS imediatamente
+    // Envia para KDS imediatamente — uid=ownerUid (tenant), criadorUid=auditoria
     if(itensCoz.length){
-      await db.collection('kds_cozinha').add({
-        uid,comandaId:comandaAtiva.id,numeroPedido:numPedido,
+      await data.kds.create('cozinha',{
+        uid:ownerUid,ownerUid,criadorUid,comandaId:comandaAtiva.id,numeroPedido:numPedido,
         cliente,mesa,obsGeral,
         itens:itensCoz.map(i=>({...i})),
         status:'novo',
         createdAt:new Date().toISOString(),
-        serverTime:firebase.firestore.FieldValue.serverTimestamp()
+        serverTime:data.serverTimestamp()
       });
     }
     if(itensBeb.length){
-      await db.collection('kds_balcao').add({
-        uid,comandaId:comandaAtiva.id,numeroPedido:numPedido,
+      await data.kds.create('balcao',{
+        uid:ownerUid,ownerUid,criadorUid,comandaId:comandaAtiva.id,numeroPedido:numPedido,
         cliente,mesa,obsGeral,
         itens:itensBeb.map(i=>({...i})),
         status:'novo',
         createdAt:new Date().toISOString(),
-        serverTime:firebase.firestore.FieldValue.serverTimestamp()
+        serverTime:data.serverTimestamp()
       });
     }
 
     // Acumula os itens na comanda (para totalizar depois)
-    const cmdRef=db.collection('comandas').doc(comandaAtiva.id);
-    const cmdSnap=await cmdRef.get();
-    const itensPrev=cmdSnap.exists?(cmdSnap.data().itens||[]):[];
-    await cmdRef.update({
+    const cmd=await data.comandas.get(comandaAtiva.id);
+    const itensPrev=cmd?(cmd.itens||[]):[];
+    await data.comandas.update(comandaAtiva.id,{
       itens:[...itensPrev,...carrinho.map(i=>({...i}))],
-      ultimaAtualizacao:firebase.firestore.FieldValue.serverTimestamp()
+      ultimaAtualizacao:data.serverTimestamp()
     });
 
     // Limpa carrinho (mas mantém comanda ativa para novos itens)
@@ -242,7 +256,7 @@ function selPag(tipo,label){
   pagSel=label;
   document.getElementById('credBox').classList.toggle('show',tipo==='credito');
   document.getElementById('pixBox').classList.toggle('show',tipo==='pix');
-  if(tipo==='pix')montarPIX();
+  if(tipo==='pix')atualizarInfoPix();
   if(tipo!=='credito'){parcelaSel=null;creditoMode='um';}
 }
 function setCreditoMode(m){
@@ -253,62 +267,73 @@ function setCreditoMode(m){
   document.getElementById('doisCartWrap').classList.toggle('show',m==='dois');
 }
 function selParc(btn,p){document.querySelectorAll('.parc').forEach(b=>b.classList.remove('on'));btn.classList.add('on');parcelaSel=p;}
-function gerarPixPayload(chave, valor, nomeRecebedor, cidade) {
-  // Gera BR Code PIX (padrão EMV) para QR Code escaneável
-  nomeRecebedor = (nomeRecebedor||'HELIVI').substring(0,25).toUpperCase();
-  cidade = (cidade||'CIDADE').substring(0,15).toUpperCase();
-  const chaveFormatada = chave.trim();
-  const merchantAccountInfo = '0014BR.GOV.BCB.PIX' + '01' + String(chaveFormatada.length).padStart(2,'0') + chaveFormatada;
-  const mai = '26' + String(merchantAccountInfo.length).padStart(2,'0') + merchantAccountInfo;
-  const mcc = '52040000'; // restaurante
-  const moeda = '5303986';
-  const valorStr = valor > 0 ? '54' + String(valor.toFixed(2).length).padStart(2,'0') + valor.toFixed(2) : '';
-  const pais = '5802BR';
-  const nome = '59' + String(nomeRecebedor.length).padStart(2,'0') + nomeRecebedor;
-  const cid  = '60' + String(cidade.length).padStart(2,'0') + cidade;
-  const txid = '62070503***'; // referência
-  let payload = '000201' + mai + mcc + moeda + valorStr + pais + nome + cid + txid + '6304';
-  // CRC16
-  function crc16(str) {
-    let crc = 0xFFFF;
-    for (let i=0; i<str.length; i++) {
-      crc ^= str.charCodeAt(i) << 8;
-      for (let j=0; j<8; j++) crc = (crc & 0x8000) ? (crc<<1)^0x1021 : crc<<1;
+
+function calcularTotalPagamento(){
+  return carrinho.reduce((s,i)=>s+i.preco*i.quantidade,0);
+}
+
+/** Total para pagamento — considera comanda aberta ou carrinho direto */
+function calcularTotalPagamentoComanda(){
+  if(comandaAtiva?.id&&(!carrinho.length)){
+    const cmd=todasComandas.find(c=>c.id===comandaAtiva.id);
+    if(cmd?.itens?.length){
+      return cmd.itens.reduce((s,i)=>s+i.preco*i.quantidade,0);
     }
-    return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4,'0');
   }
-  return payload + crc16(payload);
+  return calcularTotalPagamento();
 }
 
-function montarPIX(){
-  const chave = localStorage.getItem('pixChave')||'';
-  const qrUrl = localStorage.getItem('pixQRUrl')||'';
-  const nome  = localStorage.getItem('nomeEstab')||'HELIVI';
-  const total = carrinho.reduce((s,i)=>s+i.preco*i.quantidade,0);
+/** Carrega maquininha ativa (campo público em configuracoes/pagamentos) */
+function carregarConfigMaquininha(){
+  data.config.getPagamentos()
+    .then(pag=>{
+      maquininhaAtivaConfig=pag?(pag.maquininhaAtiva||''):'';
+      console.log('[PDV] Maquininha ativa:', maquininhaAtivaConfig||'manual');
+    })
+    .catch(()=>{ maquininhaAtivaConfig=''; });
+}
 
-  document.getElementById('pixVal').textContent = fmtR(total);
-  document.getElementById('pixChaveDisp').textContent = chave || 'Configure a chave PIX nas Configurações';
-  document.getElementById('pixSt').className = 'pix-st wait';
-  document.getElementById('pixSt').textContent = '⏳ Aguardando pagamento...';
-
-  const qrBox = document.getElementById('pixQRDisp');
-
-  if (qrUrl) {
-    // URL de QR customizada configurada pelo usuário
-    qrBox.innerHTML = `<img src="${qrUrl}" alt="QR PIX" style="width:100%;height:100%;object-fit:contain">`;
-  } else if (chave) {
-    // Gera payload BR Code correto
-    const payload = gerarPixPayload(chave, total, nome, 'BRASIL');
-    const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&ecc=M&data=${encodeURIComponent(payload)}`;
-    qrBox.innerHTML = `<img src="${qrSrc}" alt="QR PIX" style="width:100%;height:100%;object-fit:contain" onerror="this.parentElement.innerHTML='<p style=\'font-size:11px;color:var(--t4);text-align:center;padding:8px\'>Escaneie com o app do banco<br><b>${chave}</b></p>'">`;
-  } else {
-    qrBox.innerHTML = `<div style="opacity:.3;font-size:28px;display:flex;align-items:center;justify-content:center;height:100%">📱</div>`;
+function atualizarInfoPix(){
+  const total=calcularTotalPagamento();
+  const valEl=document.getElementById('pixVal');
+  const stEl=document.getElementById('pixSt');
+  if(valEl)valEl.textContent=fmtR(total);
+  if(stEl){
+    stEl.className='pix-st wait';
+    stEl.textContent=pixAtivo
+      ? '⏳ Aguardando pagamento PIX...'
+      : 'Clique em Finalizar Pedido para exibir o QR Code';
   }
 }
-function confirmarPIX(){
-  document.getElementById('pixSt').className='pix-st done';
-  document.getElementById('pixSt').textContent='✅ Pagamento confirmado!';
-  beepOk();setTimeout(()=>fecharComandaComPagamento(),800);
+
+async function obterComandaIdParaPix(){
+  if(comandaAtiva?.id)return comandaAtiva.id;
+
+  const uid=getCurrentUID();
+  const ownerUid=getOwnerUID();
+  const cliente=document.getElementById('inCliente')?.value.trim()||'';
+  const mesa=document.getElementById('inMesa')?.value.trim()||'';
+  const obs=document.getElementById('inObs')?.value.trim()||'';
+  const criadorNome=document.getElementById('topbarName')?.textContent||'';
+  const docData={
+    uid:ownerUid,ownerUid,
+    atendente:criadorNome,criadorUid:uid,
+    cliente,mesa,obs,
+    itens:carrinho.map(i=>({...i})),
+    status:'aberta',
+    createdAt:new Date().toISOString(),
+    serverTime:data.serverTimestamp()
+  };
+  const ref=await data.comandas.create(docData);
+  comandaAtiva={id:ref.id,cliente,mesa,obs};
+  modoComanda=false;
+  atualizarBannerComanda();
+  return ref.id;
+}
+
+async function obterComandaIdParaCartao(){
+  if(comandaAtiva?.id)return comandaAtiva.id;
+  return obterComandaIdParaPix();
 }
 
 async function finalizarPedido(){
@@ -321,7 +346,52 @@ async function finalizarPedido(){
   if(!carrinho.length){toast('Adicione itens ao carrinho','warning');return;}
   if(!pagSel){toast('Selecione a forma de pagamento','warning');return;}
   const tipo=document.querySelector('.pay-btn.on')?.dataset.tipo;
-  if(tipo==='pix')return;
+  if(tipo==='pix'){
+    if(pixGerando){toast('Gerando QR Code PIX...','info');return;}
+    if(pixAtivo){toast('Aguardando confirmação do PIX','info');return;}
+    const total=calcularTotalPagamento();
+    if(total<=0){toast('Valor inválido para PIX','warning');return;}
+    pixGerando=true;
+    const btn=document.getElementById('btnFinalizar');
+    if(btn)btn.disabled=true;
+    try{
+      const comandaId=await obterComandaIdParaPix();
+      const resultado=await criarPagamentoPix(comandaId,total);
+      if(!resultado.sucesso)toast('Falha ao gerar PIX. Tente novamente.','error');
+    }catch(err){
+      toast('Erro ao gerar PIX: '+err.message,'error');
+    }finally{
+      pixGerando=false;
+      if(btn&&!pixAtivo)btn.disabled=!carrinho.length;
+    }
+    return;
+  }
+  // Crédito/Débito via maquininha física (Point MP, Stone futuro...)
+  if((tipo==='credito'||tipo==='debito')&&maquininhaAtivaConfig){
+    if(cartaoGerando){toast('Enviando pagamento à maquininha...','info');return;}
+    if(cartaoAtivo){toast('Aguardando pagamento na maquininha','info');return;}
+    if(tipo==='credito'&&creditoMode==='dois'){
+      toast('Pagamento em 2 cartões não disponível com maquininha integrada.','warning');
+      return;
+    }
+    const total=calcularTotalPagamentoComanda();
+    if(total<=0){toast('Valor inválido para cartão','warning');return;}
+    cartaoGerando=true;
+    const btn=document.getElementById('btnFinalizar');
+    if(btn)btn.disabled=true;
+    try{
+      const comandaId=await obterComandaIdParaCartao();
+      const tipoPagamento=tipo==='credito'?'credit_card':'debit_card';
+      const resultado=await enviarPagamentoMaquininha(comandaId,total,tipoPagamento);
+      if(!resultado.sucesso)toast('Falha ao enviar à maquininha. Tente novamente.','error');
+    }catch(err){
+      toast('Erro na maquininha: '+err.message,'error');
+    }finally{
+      cartaoGerando=false;
+      if(btn&&!cartaoAtivo)btn.disabled=!carrinho.length&&!comandaAtiva;
+    }
+    return;
+  }
   if(tipo==='credito'&&creditoMode==='dois'){
     const total=carrinho.reduce((s,i)=>s+i.preco*i.quantidade,0);
     const c1=parseFloat(document.getElementById('cartao1In').value||'0')||0;
@@ -333,7 +403,9 @@ async function finalizarPedido(){
 // ── Fechar comanda COM pagamento ──────────────────────────
 async function fecharComandaComPagamento(){
   if(!pagSel){toast('Selecione a forma de pagamento','warning');return;}
-  const uid=getCurrentUID();
+  // ownerUid = chave do tenant (pedido, numeração, KDS); criadorUid = auditoria
+  const ownerUid=getOwnerUID();
+  const criadorUid=getCurrentUID();
   const btn=document.getElementById('btnFinalizar');
   const origLabel=btn.innerHTML;
   btn.disabled=true;
@@ -350,8 +422,8 @@ async function fecharComandaComPagamento(){
     let itensFinais=carrinho.map(i=>({...i}));
     if(comandaAtiva?.id){
       // Pega todos os itens da comanda do Firestore
-      const cmdSnap=await db.collection('comandas').doc(comandaAtiva.id).get();
-      if(cmdSnap.exists) itensFinais=cmdSnap.data().itens||[];
+      const cmdSnap=await data.comandas.get(comandaAtiva.id);
+      if(cmdSnap) itensFinais=cmdSnap.itens||[];
     }
 
     const total=itensFinais.reduce((s,i)=>s+i.preco*i.quantidade,0);
@@ -361,25 +433,25 @@ async function fecharComandaComPagamento(){
     if(tipo==='credito'&&creditoMode==='dois'){c1=parseFloat(document.getElementById('cartao1In').value||'0')||0;c2=parseFloat((total-c1).toFixed(2));pagStr='Crédito – 2 Cartões';}
 
     let numPedido=1;
-    try{const r=db.collection('config').doc('cnt_'+uid),s=await r.get();numPedido=s.exists?s.data().ultimo+1:1;await r.set({ultimo:numPedido});}catch(e){}
+    try{numPedido=await proximoNumeroPedido(ownerUid);}catch(e){}
 
     const pedido={
-      uid,cliente,mesa,obsGeral,
+      uid:ownerUid,ownerUid,criadorUid,cliente,mesa,obsGeral,
       itens:itensFinais,
       total,lucro,pagamento:pagStr,
       cartao1:c1,cartao2:c2,
       numeroPedido:numPedido,
       status:'pago',
       createdAt:new Date().toISOString(),
-      serverTime:firebase.firestore.FieldValue.serverTimestamp()
+      serverTime:data.serverTimestamp()
     };
 
     // Fecha a comanda se existir
     if(comandaAtiva?.id){
       pedido.comandaId=comandaAtiva.id;
-      await db.collection('comandas').doc(comandaAtiva.id).update({
+      await data.comandas.update(comandaAtiva.id,{
         status:'fechada',pagamento:pagStr,total,
-        fechadoEm:firebase.firestore.FieldValue.serverTimestamp()
+        fechadoEm:data.serverTimestamp()
       });
       // Remove da lista local imediatamente
       const idx=todasComandas.findIndex(c=>c.id===comandaAtiva.id);
@@ -390,7 +462,7 @@ async function fecharComandaComPagamento(){
     }
 
     // Salva pedido (histórico)
-    const ref=await db.collection('pedidos').add(pedido);
+    const ref=await data.pedidos.create(pedido);
     pedidoAtual={...pedido,id:ref.id};
 
     // Na venda direta, envia para KDS agora
@@ -399,8 +471,8 @@ async function fecharComandaComPagamento(){
       const CATS_COZ=['comida','lanche','porção','porcao','entrada','combo'];
       const itensCoz=itensFinais.filter(i=>CATS_COZ.some(k=>(i.categoria||'').toLowerCase().includes(k)));
       const itensBeb=itensFinais.filter(i=>(i.categoria||'').toLowerCase().includes('bebida'));
-      if(itensCoz.length)await db.collection('kds_cozinha').add({uid,pedidoId:ref.id,numeroPedido:numPedido,cliente,mesa,obsGeral,itens:itensCoz,status:'novo',createdAt:new Date().toISOString(),serverTime:firebase.firestore.FieldValue.serverTimestamp()});
-      if(itensBeb.length)await db.collection('kds_balcao').add({uid,pedidoId:ref.id,numeroPedido:numPedido,cliente,mesa,obsGeral,itens:itensBeb,status:'novo',createdAt:new Date().toISOString(),serverTime:firebase.firestore.FieldValue.serverTimestamp()});
+      if(itensCoz.length)await data.kds.create('cozinha',{uid:ownerUid,ownerUid,criadorUid,pedidoId:ref.id,numeroPedido:numPedido,cliente,mesa,obsGeral,itens:itensCoz,status:'novo',createdAt:new Date().toISOString(),serverTime:data.serverTimestamp()});
+      if(itensBeb.length)await data.kds.create('balcao',{uid:ownerUid,ownerUid,criadorUid,pedidoId:ref.id,numeroPedido:numPedido,cliente,mesa,obsGeral,itens:itensBeb,status:'novo',createdAt:new Date().toISOString(),serverTime:data.serverTimestamp()});
     }
 
     carrinho=[];
@@ -434,6 +506,12 @@ function resetPag(){
   document.querySelectorAll('.cred-tab').forEach(b=>b.classList.remove('on'));
   document.querySelector('.cred-tab[data-m="um"]')?.classList.add('on');
   pagSel=null;parcelaSel=null;creditoMode='um';
+  pixAtivo=false;pixGerando=false;
+  cartaoAtivo=false;cartaoGerando=false;
+  cartaoIntentIdAtual=null;cartaoComandaIdAtual=null;cartaoDeviceIdAtual=null;
+  if(cartaoVerificacaoTimer){clearInterval(cartaoVerificacaoTimer);cartaoVerificacaoTimer=null;}
+  fecharLoading();
+  atualizarInfoPix();
 }
 function mostrarPos(){document.getElementById('posDone').classList.add('show');}
 function esconderPos(){document.getElementById('posDone').classList.remove('show');}
@@ -448,10 +526,8 @@ function loadComandas(uid){
   // TODOS os usuários logados veem TODAS as comandas do dia em tempo real
   const inicioDia = new Date(); inicioDia.setHours(0,0,0,0);
 
-  db.collection('comandas').where('ownerUid','==',uid).limit(200)
-    .onSnapshot(snap=>{
-      todasComandas=snap.docs
-        .map(d=>({id:d.id,...d.data()}))
+  const aplicarLista=(lista)=>{
+      todasComandas=lista
         .filter(c=>{
           const dt=c.serverTime?.toDate?c.serverTime.toDate():new Date(c.createdAt||0);
           return dt>=inicioDia;
@@ -465,12 +541,13 @@ function loadComandas(uid){
       const abertas=todasComandas.filter(c=>c.status==='aberta').length;
       const tc=document.getElementById('tabCount');
       if(tc)tc.textContent=abertas||'';
-    },()=>{
+  };
+
+  data.comandas.subscribeByOwner(uid, aplicarLista, ()=>{
       // Fallback sem ownerUid (primeira vez / sem índice)
-      db.collection('comandas').where('uid','==',uid).limit(100)
-        .onSnapshot(snap=>{
+      data.comandas.subscribeByUidField(uid, lista=>{
           const inicioDia2=new Date();inicioDia2.setHours(0,0,0,0);
-          todasComandas=snap.docs.map(d=>({id:d.id,...d.data()}))
+          todasComandas=lista
             .filter(c=>{const dt=c.serverTime?.toDate?c.serverTime.toDate():new Date(c.createdAt||0);return dt>=inicioDia2;})
             .sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0));
           renderComandas();
@@ -585,8 +662,8 @@ async function criarComanda(){
     const ownerUid = getOwnerUID();
     const criadorUid = getCurrentUID();
     const criadorNome = document.getElementById('topbarName')?.textContent||'';
-    const docData={uid:ownerUid,ownerUid,atendente:criadorNome,criadorUid,cliente,mesa,obs,itens:[],status:'aberta',createdAt:agora.toISOString(),serverTime:firebase.firestore.FieldValue.serverTimestamp()};
-    const ref=await db.collection('comandas').add(docData);
+    const docData={uid:ownerUid,ownerUid,atendente:criadorNome,criadorUid,cliente,mesa,obs,itens:[],status:'aberta',createdAt:agora.toISOString(),serverTime:data.serverTimestamp()};
+    const ref=await data.comandas.create(docData);
     // Adiciona imediatamente na lista local
     todasComandas.unshift({id:ref.id,...docData,serverTime:{toDate:()=>agora,seconds:Math.floor(agora/1000)}});
     renderComandas();
@@ -645,7 +722,7 @@ function iniciarPagamentoComanda(comandaId){
 async function cancelarComanda(comandaId){
   const ok=await confirmar('Cancelar esta comanda?');if(!ok)return;
   try{
-    await db.collection('comandas').doc(comandaId).update({status:'cancelada'});
+    await data.comandas.update(comandaId,{status:'cancelada'});
     todasComandas=todasComandas.filter(c=>c.id!==comandaId);
     renderComandas();
     if(comandaAtiva?.id===comandaId){comandaAtiva=null;modoComanda=false;atualizarBannerComanda();atualizarBotaoFinalizar();}
@@ -713,7 +790,6 @@ function bindUI(uid){
   document.getElementById('btnNovoPedido')?.addEventListener('click',novoPedido);
   document.getElementById('btnImprimir')?.addEventListener('click',()=>pedidoAtual&&imprimirCupom(pedidoAtual));
   document.getElementById('btnWhatsApp')?.addEventListener('click',()=>pedidoAtual&&enviarWhatsApp(pedidoAtual,localStorage.getItem('whatsappTel')||''));
-  document.getElementById('btnPixOk')?.addEventListener('click',confirmarPIX);
   document.getElementById('cartao1In')?.addEventListener('input',atualizarRest);
   document.getElementById('btnObsTog')?.addEventListener('click',()=>document.getElementById('obsWrap').classList.toggle('open'));
   document.querySelectorAll('.pay-btn').forEach(b=>b.addEventListener('click',()=>selPag(b.dataset.tipo,b.dataset.label)));
@@ -725,3 +801,736 @@ function bindUI(uid){
   document.querySelectorAll('[data-st]').forEach(btn=>btn.addEventListener('click',()=>aplicarFiltroStatus(btn,btn.dataset.st)));
   ['ncCliente','ncMesa','ncObs'].forEach(id=>document.getElementById(id)?.addEventListener('keypress',e=>{if(e.key==='Enter')criarComanda();}));
 }
+
+function parseValidadePix(validadeEm, expiracaoSegundos = 3600) {
+  if (validadeEm != null) {
+    if (typeof validadeEm === 'number') return validadeEm;
+    if (typeof validadeEm === 'string') {
+      const ms = Date.parse(validadeEm);
+      if (!Number.isNaN(ms)) return ms;
+    }
+    if (validadeEm.seconds != null) return validadeEm.seconds * 1000;
+    if (validadeEm._seconds != null) return validadeEm._seconds * 1000;
+    const ms = new Date(validadeEm).getTime();
+    if (!Number.isNaN(ms)) return ms;
+  }
+  return Date.now() + expiracaoSegundos * 1000;
+}
+
+function formatCountdownPix(segundos) {
+  const total = Math.max(0, Math.floor(segundos));
+  const min = Math.floor(total / 60);
+  const sec = total % 60;
+  if (min > 0) return `Válido por ${min}:${String(sec).padStart(2, '0')}`;
+  return `Válido por ${total} segundos`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SEÇÃO CARTÃO: Pagamento via Maquininha (Factory genérico no backend)
+// O PDV não conhece a marca — apenas chama Cloud Functions padrão.
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Envia valor para a maquininha ativa (Point MP, Stone futuro...).
+ * @param {string} comandaId
+ * @param {number} valorReais - Total em reais
+ * @param {string} tipoPagamento - 'credit_card' | 'debit_card'
+ */
+async function enviarPagamentoMaquininha(comandaId, valorReais, tipoPagamento) {
+  if (!comandaId) {
+    toast('Comanda não identificada', 'error');
+    return { sucesso: false };
+  }
+  if (!valorReais || valorReais <= 0) {
+    toast('Valor inválido', 'warning');
+    return { sucesso: false };
+  }
+
+  mostrarLoading('Enviando pagamento à maquininha...');
+
+  const valorCentavos = Math.round(valorReais * 100);
+  cartaoComandaIdAtual = comandaId;
+
+  try {
+    const result = await data.pagamentos.criarMaquininha({
+      comandaId,
+      valorCentavos,
+      tipoPagamento,
+      descricao: 'Pagamento HELIVI PDV',
+    });
+
+    const { intentId, deviceId, sucesso } = result;
+    if (!sucesso || !intentId) {
+      fecharLoading();
+      toast('Falha ao enviar pagamento à maquininha.', 'error');
+      return { sucesso: false };
+    }
+
+    console.log('[Cartão] Payment intent criado:', intentId);
+    cartaoIntentIdAtual = intentId;
+    cartaoDeviceIdAtual = deviceId;
+    cartaoAtivo = true;
+
+    mostrarLoading('Aproxime ou insira o cartão na maquininha...');
+    toast('Pagamento enviado à maquininha. Aguardando cartão...', 'info', 5000);
+
+    iniciarVerificacaoPeriodicaCartao(comandaId, intentId);
+
+    return { sucesso: true, intentId };
+  } catch (erro) {
+    console.error('[Cartão] Erro ao criar pagamento:', erro);
+    fecharLoading();
+    toast('Erro na maquininha: ' + (erro.message || erro), 'error');
+    return { sucesso: false };
+  }
+}
+
+/** Polling do status na maquininha (a cada 3s) */
+function iniciarVerificacaoPeriodicaCartao(comandaId, intentId, intervalMs = 3000) {
+  console.log('[Cartão] Iniciando polling a cada', intervalMs / 1000, 's');
+
+  if (cartaoVerificacaoTimer) clearInterval(cartaoVerificacaoTimer);
+
+  let tentativas = 0;
+  const maxTentativas = 200; // ~10 min
+
+  cartaoVerificacaoTimer = setInterval(async () => {
+    if (!cartaoAtivo) {
+      clearInterval(cartaoVerificacaoTimer);
+      cartaoVerificacaoTimer = null;
+      return;
+    }
+
+    tentativas++;
+    if (tentativas > maxTentativas) {
+      clearInterval(cartaoVerificacaoTimer);
+      cartaoVerificacaoTimer = null;
+      cartaoAtivo = false;
+      fecharLoading();
+      toast('Tempo esgotado aguardando pagamento na maquininha.', 'warning');
+      await cancelarCartaoMaquininha(comandaId, intentId);
+      return;
+    }
+
+    try {
+      const result = await data.pagamentos.verificarMaquininha({ intentId });
+      const { pago, recusado, cancelado, status } = result;
+
+      if (pago) {
+        console.log('[Cartão] Pagamento aprovado na maquininha');
+        await finalizarCartaoConfirmado(comandaId);
+        return;
+      }
+
+      if (recusado) {
+        clearInterval(cartaoVerificacaoTimer);
+        cartaoVerificacaoTimer = null;
+        cartaoAtivo = false;
+        fecharLoading();
+        toast('Pagamento recusado na maquininha. Tente novamente.', 'error');
+        return;
+      }
+
+      if (cancelado) {
+        clearInterval(cartaoVerificacaoTimer);
+        cartaoVerificacaoTimer = null;
+        cartaoAtivo = false;
+        fecharLoading();
+        toast('Pagamento cancelado na maquininha.', 'warning');
+        return;
+      }
+
+      // Mantém loading com mensagem de aguardo
+      mostrarLoading('Aguardando cartão na maquininha... (' + (status || 'pendente') + ')');
+    } catch (erro) {
+      console.error('[Cartão] Erro no polling:', erro.message);
+    }
+  }, intervalMs);
+}
+
+/** Fecha venda após confirmação do cartão na maquininha */
+async function finalizarCartaoConfirmado(comandaId) {
+  if (!cartaoAtivo) return;
+
+  cartaoAtivo = false;
+  if (cartaoVerificacaoTimer) {
+    clearInterval(cartaoVerificacaoTimer);
+    cartaoVerificacaoTimer = null;
+  }
+
+  fecharLoading();
+  await onPagamentoConfirmado({ id: comandaId });
+  cartaoComandaIdAtual = null;
+  cartaoIntentIdAtual = null;
+  cartaoDeviceIdAtual = null;
+}
+
+/** Cancela payment intent na maquininha (timeout ou desistência) */
+async function cancelarCartaoMaquininha(comandaId, intentId) {
+  if (!intentId) return;
+  try {
+    await data.pagamentos.cancelarMaquininha({ intentId, comandaId });
+  } catch (e) {
+    console.warn('[Cartão] Falha ao cancelar intent:', e.message);
+  }
+}
+
+// ── SEÇÃO 2: Criar Pagamento PIX (Efi Bank via Firebase Functions) ─────────
+async function criarPagamentoPix(comandaId, valor) {
+  try {
+    // Validar entrada
+    if (!comandaId) {
+      alert('Erro: Comanda não identificada');
+      return { sucesso: false };
+    }
+    if (!valor || valor <= 0) {
+      alert('Erro: Valor inválido');
+      return { sucesso: false };
+    }
+
+    // Mostrar loading
+    mostrarLoading('Gerando QR Code PIX...');
+
+    // Converter valor para centavos (Firebase espera assim)
+    // Exemplo: R$ 150,00 = 15000 centavos
+    const valorCentavos = Math.round(valor * 100);
+    pixValorReaisAtual = valor;
+    pixComandaIdAtual = comandaId;
+
+    // Chamar backend via camada de dados
+    const result = await data.pagamentos.criarPix({
+      comandaId: comandaId,
+      valor: valorCentavos,
+      descricao: `Pagamento comanda ${comandaId}`
+    });
+
+    // Esconder loading
+    fecharLoading();
+
+    // Extrair dados do resultado
+    const { txid, qrcode, pixCopiaECola, qrcodeImagem, ticketUrl, ambienteTeste, pixSandboxReal, pixSimulacaoLocal, validadeEm, expiracaoSegundos } = result;
+
+    console.log('✅ PIX criado com sucesso');
+    console.log('TXID:', txid);
+    console.log('Válido até:', validadeEm);
+
+    // Salvar TXID globalmente para referência
+    pixTxidAtual = txid;
+    pixMpOrderIdAtual = result.mpOrderId || null;
+    pixAtivo = true;
+    atualizarInfoPix();
+
+    // Exibir tela de QR Code
+    pixComandaIdAtual = comandaId;
+    mostrarTelaQrCode(
+      { qrcode, pixCopiaECola, qrcodeImagem, ticketUrl, ambienteTeste, pixSandboxReal, pixSimulacaoLocal },
+      valor,
+      txid,
+      validadeEm,
+      expiracaoSegundos,
+      comandaId
+    );
+
+    // Iniciar monitoramento automático
+    iniciarMonitoramentoPix(comandaId, txid);
+    iniciarVerificacaoPeriodicaPix(comandaId, txid, result.pixSandboxReal ? 2000 : 10000);
+
+    return { sucesso: true, txid, qrcode, pixCopiaECola };
+
+  } catch (erro) {
+    console.error('❌ Erro ao criar PIX:', erro.code || erro.message, erro);
+    fecharLoading();
+    const raw = String(erro.message || erro);
+    const msgRede = /Failed to fetch|NetworkError|CORS/i.test(raw)
+      ? 'Falha de comunicação com a API (helivi-api). Confirme que ela está rodando em http://127.0.0.1:8787.'
+      : raw;
+    alert('Erro ao gerar QR Code PIX:\n' + msgRede);
+    return { sucesso: false, erro: erro.message };
+  }
+}
+
+// ── SEÇÃO 3: Monitorar Comanda em Tempo Real (Firestore Listener) ────────
+async function finalizarPixConfirmado(valorFallback, comandaId) {
+  if (!pixAtivo) return;
+
+  pixAtivo = false;
+  if (pixVerificacaoTimer) {
+    clearInterval(pixVerificacaoTimer);
+    pixVerificacaoTimer = null;
+  }
+
+  fecharTelaQrCode();
+  await onPagamentoConfirmado({ id: comandaId }, valorFallback);
+  pixComandaIdAtual = null;
+}
+
+// Esta função escuta mudanças na comanda e detecta quando PIX é confirmado
+function iniciarMonitoramentoPix(comandaId, txid) {
+  console.log('👁️ Iniciando monitoramento da comanda...');
+
+  // Se já existe listener, cancelar
+  if (pixUnsubscribe) {
+    pixUnsubscribe();
+  }
+
+  // Criar listener via camada de dados
+  pixUnsubscribe = data.comandas.subscribeDoc(comandaId, (cmd) => {
+      if (!cmd) return;
+
+      // ✅ PIX FOI CONFIRMADO!
+      if (cmd.statusPagamento === 'confirmado') {
+        console.log('✅✅✅ PIX CONFIRMADO!');
+        console.log('Valor:', cmd.pixValor);
+        console.log('Data/Hora:', cmd.pixConfirmadoEm);
+        finalizarPixConfirmado(cmd.pixValor, cmd.id);
+      }
+
+      // ⏰ PIX EXPIROU
+      const agora = new Date();
+      const validadeEm = cmd.pixValidadeEm ? new Date(cmd.pixValidadeEm.toDate()) : null;
+
+      if (validadeEm && agora > validadeEm && cmd.statusPagamento === 'aguardando_pix') {
+        console.log('❌ PIX expirou');
+        pixAtivo = false;
+        if (pixVerificacaoTimer) clearInterval(pixVerificacaoTimer);
+
+        mostrarAviso('QR Code expirou. Gere um novo para continuar.');
+      }
+    }, (erro) => {
+      console.error('Erro ao monitorar comanda:', erro);
+    });
+}
+
+// ── SEÇÃO 4: Verificação Manual de Status (Fallback) ───────────────────
+// Se por algum motivo o webhook não chegar, permitir verificação manual
+async function verificarPagamentoPixManualmente(txid) {
+  try {
+    mostrarLoading('Verificando pagamento...');
+
+    const result = await data.pagamentos.verificarPix({ txid });
+
+    fecharLoading();
+
+    const { pago, status, dataPagamento, valor } = result;
+
+    console.log('Status PIX:', status);
+    console.log('Pago?', pago);
+    console.log('Data:', dataPagamento);
+
+    if (pago) {
+      console.log('✅ PIX confirmado!');
+      finalizarPixConfirmado(valor, pixComandaIdAtual);
+      return true;
+    } else {
+      console.log('⏳ PIX ainda aguardando...');
+      mostrarAviso('Pagamento ainda não recebido. Tente novamente em alguns segundos.');
+      return false;
+    }
+  } catch (erro) {
+    console.error('Erro ao verificar PIX:', erro.message);
+    fecharLoading();
+    alert('Erro ao verificar status: ' + erro.message);
+    return false;
+  }
+}
+
+// ── SEÇÃO 5: Verificação Automática Periódica (Opcional) ────────────────
+// Verificar a cada 5 segundos se PIX foi pago (enquanto aguarda webhook)
+function iniciarVerificacaoPeriodicaPix(comandaId, txid, intervalMs = 5000) {
+  console.log('⏰ Iniciando verificação periódica a cada', intervalMs / 1000, 'segundos');
+
+  // Limpar timer anterior se existir
+  if (pixVerificacaoTimer) clearInterval(pixVerificacaoTimer);
+
+  // Verificar a cada intervalo
+  pixVerificacaoTimer = setInterval(async () => {
+    if (!pixAtivo) {
+      clearInterval(pixVerificacaoTimer);
+      return;
+    }
+
+    try {
+      const result = await data.pagamentos.verificarPix({ txid });
+
+      if (result.pago) {
+        console.log('✅ PIX confirmado via verificação periódica');
+        finalizarPixConfirmado(result.valor, comandaId);
+      }
+    } catch (erro) {
+      console.error('Erro na verificação periódica:', erro.message);
+    }
+  }, intervalMs);
+}
+
+function isPdvLocalDev() {
+  const h = location.hostname;
+  return h === 'localhost' || h === '127.0.0.1';
+}
+
+async function simularConfirmacaoPixLocal(comandaId, txid) {
+  try {
+    mostrarLoading('Simulando confirmação...');
+    await data.pagamentos.simularConfirmacaoPix({ comandaId, txid });
+    fecharLoading();
+    mostrarAviso('Pagamento simulado! Comanda confirmada.');
+  } catch (erro) {
+    fecharLoading();
+    alert('Erro ao simular: ' + (erro.message || erro));
+  }
+}
+
+// ── SEÇÃO 6: UI - Exibir Tela de QR Code ─────────────────────────────────
+function mostrarTelaQrCode(dadosPix, valor, txid, validadeEm, expiracaoSegundos = 3600, comandaId = null) {
+  const pixCopiaECola = typeof dadosPix === 'object' ? dadosPix.pixCopiaECola : null;
+  const qrcodeImagem = typeof dadosPix === 'object' ? dadosPix.qrcodeImagem : null;
+  const ticketUrl = typeof dadosPix === 'object' ? dadosPix.ticketUrl : null;
+  const ambienteTeste = typeof dadosPix === 'object' ? dadosPix.ambienteTeste : false;
+  const pixSandboxReal = typeof dadosPix === 'object' ? dadosPix.pixSandboxReal : false;
+  const pixSimulacaoLocal = typeof dadosPix === 'object' ? dadosPix.pixSimulacaoLocal : false;
+  const qrcodeLegacy = typeof dadosPix === 'string' ? dadosPix : dadosPix?.qrcode;
+  // Criar container
+  const container = document.createElement('div');
+  container.id = 'modal-qrcode-pix';
+  container.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+  `;
+
+  // Conteúdo do modal
+  const content = document.createElement('div');
+  content.style.cssText = `
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 500px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  `;
+
+  // Título
+  const title = document.createElement('h2');
+  title.textContent = '💳 Pagamento PIX';
+  title.style.cssText = 'margin: 0 0 16px 0; color: #333; font-size: 24px;';
+
+  // Valor
+  const valorEl = document.createElement('div');
+  valorEl.textContent = `Valor: ${fmtR(valor)}`;
+  valorEl.style.cssText = 'font-size: 20px; color: #666; margin-bottom: 24px; font-weight: bold;';
+
+  const qrImg = document.createElement('img');
+  qrImg.alt = 'QR Code PIX';
+  qrImg.style.cssText = 'width: 300px; height: 300px; margin: 20px auto; border: 2px solid #ddd; border-radius: 8px; display: block;';
+
+  if (qrcodeImagem) {
+    qrImg.src = qrcodeImagem.startsWith('data:') ? qrcodeImagem : `data:image/png;base64,${qrcodeImagem}`;
+  } else if (pixCopiaECola) {
+    qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(pixCopiaECola)}`;
+  } else if (qrcodeLegacy) {
+    qrImg.src = qrcodeLegacy.startsWith('data:') || qrcodeLegacy.startsWith('http')
+      ? qrcodeLegacy
+      : `data:image/png;base64,${qrcodeLegacy}`;
+  }
+
+  const copiaColaEl = document.createElement('div');
+  if (pixCopiaECola) {
+    copiaColaEl.style.cssText = 'margin: 12px 0; padding: 12px; background: #f5f5f5; border-radius: 8px; word-break: break-all; font-size: 11px; color: #555;';
+    copiaColaEl.textContent = pixCopiaECola;
+
+    const btnCopiar = document.createElement('button');
+    btnCopiar.textContent = '📋 Copiar PIX Copia e Cola';
+    btnCopiar.onclick = () => navigator.clipboard.writeText(pixCopiaECola).then(() => mostrarAviso('Código copiado!'));
+    btnCopiar.style.cssText = 'background: #2196F3; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin-top: 8px; font-size: 14px;';
+    copiaColaEl.appendChild(document.createElement('br'));
+    copiaColaEl.appendChild(btnCopiar);
+  }
+
+  const instrucoes = document.createElement('div');
+  instrucoes.style.cssText = 'color: #666; margin: 20px 0; font-size: 14px; text-align: left; line-height: 1.6;';
+
+  if (ambienteTeste) {
+    if (pixSandboxReal) {
+      instrucoes.innerHTML = `
+        <strong>Sandbox MP (pagamento fictício):</strong>
+        <ol style="margin: 10px 0 0; padding-left: 20px;">
+          <li>Aguarde ~10s — o APRO pode aprovar sozinho</li>
+          <li>Ou clique em <strong>Simular pagamento</strong> e conclua na página MP</li>
+        </ol>`;
+    } else if (pixSimulacaoLocal && isPdvLocalDev()) {
+      instrucoes.innerHTML = `
+        <strong>Modo teste local (sem cobrar):</strong>
+        <p style="margin: 10px 0 0;">
+          Este PIX é <em>real</em> — a conta comprador de teste
+          (<code>test_user_...@testuser.com</code>) <strong>não consegue pagá-lo</strong>.
+        </p>
+        <p style="margin: 8px 0 0;">
+          Clique em <strong>Confirmar teste (emulador)</strong> abaixo para simular o pagamento no PDV.
+        </p>`;
+    } else {
+      instrucoes.innerHTML = `
+        <strong>Modo teste:</strong>
+        <p style="margin: 10px 0 0;">
+          Conta comprador de teste não paga este PIX. Use o botão roxo com sua conta MP real,
+          ou desmarque Modo teste MP para produção.
+        </p>`;
+    }
+  } else {
+    instrucoes.textContent = 'Escaneie o QR Code ou copie o código PIX e pague no app do seu banco.';
+  }
+
+  let btnSimularTeste = null;
+  let btnConfirmarEmulador = null;
+
+  if (pixSimulacaoLocal && isPdvLocalDev() && comandaId) {
+    btnConfirmarEmulador = document.createElement('button');
+    btnConfirmarEmulador.type = 'button';
+    btnConfirmarEmulador.textContent = '✅ Confirmar teste (emulador — sem pagar)';
+    btnConfirmarEmulador.onclick = () => simularConfirmacaoPixLocal(comandaId, txid);
+    btnConfirmarEmulador.style.cssText = `
+      display: block;
+      width: 100%;
+      background: #059669;
+      color: white;
+      border: none;
+      padding: 14px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      margin: 8px 0 16px;
+      cursor: pointer;
+    `;
+  }
+
+  if (ambienteTeste && ticketUrl) {
+    btnSimularTeste = document.createElement('a');
+    btnSimularTeste.href = ticketUrl;
+    btnSimularTeste.target = '_blank';
+    btnSimularTeste.rel = 'noopener noreferrer';
+    btnSimularTeste.textContent = pixSandboxReal
+      ? '🧪 Simular pagamento (sandbox MP)'
+      : '🧪 Abrir página Mercado Pago (pagamento real)';
+    btnSimularTeste.style.cssText = `
+      display: inline-block;
+      background: #7c3aed;
+      color: white;
+      text-decoration: none;
+      padding: 14px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      margin: 8px 0 16px;
+    `;
+    btnSimularTeste.addEventListener('click', () => {
+      mostrarAviso('Conclua o pagamento na aba do Mercado Pago e volte aqui.');
+      setTimeout(() => verificarPagamentoPixManualmente(txid), 8000);
+      setTimeout(() => verificarPagamentoPixManualmente(txid), 20000);
+    });
+  }
+
+  // Countdown de expiração
+  const expiraEmMs = parseValidadePix(validadeEm, expiracaoSegundos);
+  let segundos = Math.max(0, Math.round((expiraEmMs - Date.now()) / 1000));
+  const countdown = document.createElement('div');
+  countdown.id = 'countdown-pix';
+  countdown.textContent = formatCountdownPix(segundos);
+  countdown.style.cssText = 'color: #ff6b6b; font-weight: bold; margin: 16px 0;';
+
+  // Botão de verificação manual
+  const btnVerificar = document.createElement('button');
+  btnVerificar.textContent = '🔄 2. Verificar Pagamento';
+  btnVerificar.onclick = () => verificarPagamentoPixManualmente(txid);
+  btnVerificar.style.cssText = `
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 16px;
+  `;
+
+  // Botão de cancelar
+  const btnCancelar = document.createElement('button');
+  btnCancelar.textContent = '❌ Cancelar';
+  btnCancelar.onclick = () => cancelarPagamentoPix();
+  btnCancelar.style.cssText = `
+    background: #f44336;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-left: 8px;
+    margin-top: 16px;
+  `;
+
+  // Montar
+  content.appendChild(title);
+  content.appendChild(valorEl);
+  content.appendChild(qrImg);
+  if (pixCopiaECola) content.appendChild(copiaColaEl);
+  content.appendChild(instrucoes);
+  if (btnConfirmarEmulador) content.appendChild(btnConfirmarEmulador);
+  if (btnSimularTeste) content.appendChild(btnSimularTeste);
+  content.appendChild(countdown);
+  content.appendChild(btnVerificar);
+  content.appendChild(btnCancelar);
+
+  container.appendChild(content);
+  document.body.appendChild(container);
+
+  // Atualizar countdown a cada segundo
+  if (pixCountdownTimer) clearInterval(pixCountdownTimer);
+  pixCountdownTimer = setInterval(() => {
+    segundos = Math.max(0, Math.round((expiraEmMs - Date.now()) / 1000));
+    const el = document.getElementById('countdown-pix');
+    if (el) el.textContent = formatCountdownPix(segundos);
+    if (segundos <= 0) {
+      clearInterval(pixCountdownTimer);
+      pixCountdownTimer = null;
+      cancelarPagamentoPix();
+      mostrarAviso('QR Code expirou');
+    }
+  }, 1000);
+}
+
+// ── SEÇÃO 7: Fechar / cancelar QR Code PIX ───────────────────────────────
+function restaurarBotaoFinalizarPix() {
+  const btn = document.getElementById('btnFinalizar');
+  if (btn) btn.disabled = !carrinho.length && !comandaAtiva;
+}
+
+function limparEstadoPixLocal() {
+  pixAtivo = false;
+  pixGerando = false;
+  pixCancelando = false;
+  pixTxidAtual = null;
+  pixMpOrderIdAtual = null;
+  pixValorReaisAtual = null;
+  pixComandaIdAtual = null;
+  if (pixUnsubscribe) {
+    try { pixUnsubscribe(); } catch (_) {}
+    pixUnsubscribe = null;
+  }
+  if (pixVerificacaoTimer) {
+    clearInterval(pixVerificacaoTimer);
+    pixVerificacaoTimer = null;
+  }
+  if (pixCountdownTimer) {
+    clearInterval(pixCountdownTimer);
+    pixCountdownTimer = null;
+  }
+  atualizarInfoPix();
+  restaurarBotaoFinalizarPix();
+}
+
+function fecharTelaQrCode() {
+  const modal = document.getElementById('modal-qrcode-pix');
+  if (modal) modal.remove();
+  limparEstadoPixLocal();
+}
+
+/** Cancela cobrança no gateway (MP) + limpa comanda e libera o PDV */
+async function cancelarPagamentoPix() {
+  if (pixCancelando) return;
+  pixCancelando = true;
+  const comandaId = pixComandaIdAtual;
+  document.querySelectorAll('#modal-qrcode-pix button').forEach((b) => {
+    b.disabled = true;
+  });
+  try {
+    if (comandaId && data.pagamentos?.cancelarPix) {
+      await data.pagamentos.cancelarPix({ comandaId });
+    }
+    toast('PIX cancelado', 'info');
+  } catch (err) {
+    console.warn('[PIX] Falha ao cancelar no servidor:', err.message || err);
+    toast('PIX fechado localmente (verifique o painel do gateway)', 'warning');
+  } finally {
+    fecharTelaQrCode();
+  }
+}
+
+// ── SEÇÃO 8-9: Callback após confirmação do PIX Efi ──────────────────────
+async function onPagamentoConfirmado(comanda, valorFallback) {
+  console.log('Pagamento confirmado para comanda:', comanda?.id);
+  pixValorReaisAtual = null;
+  cartaoAtivo = false;
+  if (cartaoVerificacaoTimer) {
+    clearInterval(cartaoVerificacaoTimer);
+    cartaoVerificacaoTimer = null;
+  }
+  fecharLoading();
+  beepOk();
+  await fecharComandaComPagamento();
+}
+
+// ── SEÇÃO 10: Funções Auxiliares UI ──────────────────────────────────────
+function mostrarLoading(mensagem = 'Processando...') {
+  let loader = document.getElementById('loader-pix');
+  if (!loader) {
+    loader = document.createElement('div');
+    loader.id = 'loader-pix';
+    loader.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 32px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      z-index: 9998;
+      text-align: center;
+    `;
+    document.body.appendChild(loader);
+  }
+  loader.innerHTML = `
+    <div style="margin-bottom: 16px;">
+      <svg style="animation: spin 1s linear infinite; width: 40px; height: 40px; color: #4CAF50;"
+           viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <circle cx="12" cy="12" r="10" stroke-width="2" opacity="0.3"/>
+        <path d="M12 2a10 10 0 0 1 10 10" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div style="font-size: 16px; color: #333;">${mensagem}</div>
+    <style>
+      @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
+  `;
+}
+
+function fecharLoading() {
+  const loader = document.getElementById('loader-pix');
+  if (loader) loader.remove();
+}
+
+function mostrarAviso(mensagem) {
+  // Toast notification
+  const toast = document.createElement('div');
+  toast.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #ff9800;
+    color: white;
+    padding: 16px 24px;
+    border-radius: 8px;
+    z-index: 9999;
+    animation: slideIn 0.3s ease-out;
+  `;
+  toast.textContent = mensagem;
+  document.body.appendChild(toast);
+
+  setTimeout(() => toast.remove(), 4000);
+}
+

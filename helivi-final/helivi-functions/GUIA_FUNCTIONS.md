@@ -1,180 +1,190 @@
 # HELIVI — Guia de Functions e Testes Locais
-## Como publicar as Firebase Functions e testar com Live Server no VS Code
+
+Como publicar as Firebase Functions e testar o sistema com Live Server no VS Code.
+
+> **LEGADO / ROLLBACK:** este guia descreve o backend Firebase. O desenvolvimento atual usa Supabase + `helivi-api`. Para configurar o caminho atual, comece em [README.md](../README.md) e [GUIA_CONFIGURACAO_FINAL.md](../GUIA_CONFIGURACAO_FINAL.md). Use este documento somente ao testar `dataBackend: 'firebase'`, manter Functions existentes ou executar rollback.
+>
+> Em localhost, os emuladores abaixo só são ativados quando o backend selecionado é `firebase`. Com `dataBackend: 'supabase'`, rode `helivi-api` em `:8787` e não espere serviços em `:8080`/`:9099`.
 
 ---
 
 ## 📋 O QUE AS FUNCTIONS FAZEM
 
-| Function | O que faz |
-|---|---|
-| `criarColaborador` | Admin cria conta completa (nome, email, senha, perfil) |
-| `editarColaborador` | Atualiza dados e senha do colaborador |
-| `excluirColaborador` | Remove do Auth e do Firestore |
-| `onPedidoCriado` | Registra automaticamente o nome do atendente no pedido |
-| `onComandaCriada` | Registra o atendente que abriu a comanda |
-| `onKdsCozinhaCriado` | Registra quem enviou o pedido para a cozinha |
-| `onKdsBalcaoCriado` | Registra quem enviou para o balcão |
+| Function | Tipo | O que faz |
+|----------|------|-----------|
+| `criarColaborador` | Callable | Admin cria conta (nome, e-mail, senha, perfil) |
+| `editarColaborador` | Callable | Atualiza dados e senha do colaborador |
+| `excluirColaborador` | Callable | Remove do Auth e do Firestore |
+| `onPedidoCriado` | Trigger Firestore | Registra o atendente no pedido |
+| `onComandaCriada` | Trigger Firestore | Registra quem abriu a comanda |
+| `onKdsCozinhaCriado` | Trigger Firestore | Registra quem enviou para a cozinha |
+| `onKdsBalcaoCriado` | Trigger Firestore | Registra quem enviou para o balcão |
+| `criarPagamentoPix` | Callable | Gera QR Code PIX para uma comanda (gateway ativo: Mercado Pago ou Efi) |
+| `verificarPagamentoPix` | Callable | Consulta status do pagamento PIX |
+| `salvarConfigPagamentoPix` | Callable (admin) | Salva o gateway ativo e os segredos no Firestore (ilegíveis pelo cliente) |
+| `simularConfirmacaoPixTeste` | Callable (só emulador) | Marca a comanda como paga para testes locais |
+| `webhookPagamentoPix` | HTTP POST | Recebe a notificação do gateway, valida na API e confirma o pagamento |
+
+> **PIX multi-gateway:** foi implantada a **API do Mercado Pago** (`/v1/orders`), agora o gateway recomendado; a **Efi Bank** segue como alternativa. Um `pixFactory` lê o gateway ativo e os segredos do Firestore (`configuracoes/pagamentos` e `configuracoes/segredos_pagamento`) e delega ao service correto. O gateway e as credenciais são definidos **no app** em **Configurações → Pagamento PIX**.
+
+> Configuração completa do PIX (Mercado Pago, Efi, webhook, deploy): [GUIA_CONFIGURACAO_FINAL.md](../GUIA_CONFIGURACAO_FINAL.md)
 
 ---
 
 ## ✅ PRÉ-REQUISITOS
 
-Antes de começar, instale:
-
-1. **Node.js 18+**
-   - Acesse: https://nodejs.org
-   - Baixe a versão LTS e instale
-   - Verifique: abra o terminal e digite `node --version`
+1. **Node.js 20+**
+   - https://nodejs.org (versão LTS)
+   - Verifique: `node --version`
 
 2. **Firebase CLI**
-   - No terminal, digite:
-   ```
+   ```bash
    npm install -g firebase-tools
+   firebase --version
    ```
-   - Verifique: `firebase --version`
+
+3. **Conta Firebase** com acesso ao projeto `helivi`
 
 ---
 
-## 🚀 PASSO A PASSO — PUBLICAR AS FUNCTIONS
+## 🚀 PUBLICAR AS FUNCTIONS
 
-### Passo 1 — Login no Firebase
+### Passo 1 — Login
+
 ```bash
 firebase login
 ```
-Abrirá o navegador para você entrar com a conta Google do projeto.
 
----
+### Passo 2 — Instalar dependências
 
-### Passo 2 — Entrar na pasta das Functions
 ```bash
 cd helivi-functions
-```
-
----
-
-### Passo 3 — Instalar dependências
-```bash
 npm install
 ```
-Aguarde baixar as bibliotecas (firebase-admin, firebase-functions).
 
----
+### Passo 3 — Deploy
 
-### Passo 4 — Publicar no Firebase
 ```bash
-firebase deploy --only functions
+npm run deploy
 ```
-Aguarde o deploy (pode levar 2-3 minutos).
 
-Quando terminar, aparecerá algo como:
+Equivalente a `firebase deploy --only functions`. Aguarde 2–3 minutos.
+
+Saída esperada:
+
 ```
 ✔ functions[criarColaborador]: Deployed
-✔ functions[editarColaborador]: Deployed
-✔ functions[excluirColaborador]: Deployed
-✔ functions[onPedidoCriado]: Deployed
+✔ functions[criarPagamentoPix]: Deployed
+✔ functions[salvarConfigPagamentoPix]: Deployed
+✔ functions[webhookPagamentoPix]: Deployed
 ...
 Deploy complete!
 ```
 
----
+A URL do webhook é exibida ao final (ex.: `https://webhookpagamentopix-<hash>-uc.a.run.app`). Use-a no painel do gateway com `?gateway=mercadopago&secret=...` (veja [GUIA_CONFIGURACAO_FINAL.md](../GUIA_CONFIGURACAO_FINAL.md)).
 
-### Passo 5 — Ativar o plano Blaze (obrigatório para Functions)
-- As Firebase Functions exigem o plano **Blaze** (pay-as-you-go)
-- Acesse: https://console.firebase.google.com/project/helivi/usage/details
-- Clique em "Fazer upgrade" → Blaze
-- ⚠️ **Não se preocupe com custo**: o plano Blaze tem uma cota gratuita generosa.
-  Para um sistema de lanchonete, **o custo será R$ 0,00** (ou centavos por mês no máximo)
-- Valores gratuitos incluídos todo mês:
-  - 2 milhões de invocações de Functions
-  - 400 mil GB-segundos de computação
-  - 200 GB de transferência
+### Passo 4 — Plano Blaze (obrigatório)
+
+Firebase Functions exige o plano **Blaze** (pay-as-you-go):
+
+- https://console.firebase.google.com/project/helivi/usage/details
+- Para o volume de uma lanchonete, o custo costuma ser **R$ 0,00** (cota gratuita mensal)
 
 ---
 
-## 🧪 TESTAR LOCALMENTE COM LIVE SERVER + EMULADOR
+## 🧪 TESTAR LOCALMENTE (LIVE SERVER + EMULADOR)
 
-Esta é a parte mais legal — você testa **tudo** sem precisar publicar!
+Teste tudo sem publicar na nuvem.
 
-### Passo 1 — Iniciar o Emulador Firebase
+### Passo 1 — Iniciar emuladores
+
 ```bash
 cd helivi-functions
 npm run serve
 ```
 
-Vai aparecer:
+O script libera portas ocupadas e inicia Auth, Firestore e Functions:
+
 ```
 ✔ All emulators ready!
 ┌─────────────────┬──────────────┐
-│ Emulator        │ Host:Port    │
-├─────────────────┼──────────────┤
-│ Authentication  │ localhost:9099│
-│ Functions       │ localhost:5001│
-│ Firestore       │ localhost:8080│
-│ Emulator UI     │ localhost:4000│
+│ Authentication  │ localhost:9099 │
+│ Functions       │ localhost:5001 │
+│ Firestore       │ localhost:8080 │
+│ Emulator UI     │ localhost:4000 │
 └─────────────────┴──────────────┘
 ```
 
-Abra http://localhost:4000 para ver o painel do emulador (dados, usuários, etc.)
+Painel: http://localhost:4000
 
----
+### Passo 2 — Emuladores no frontend (automático)
 
-### Passo 2 — Ativar o emulador no sistema HELIVI
+O arquivo `js/firebase.js` detecta `localhost` / `127.0.0.1` e conecta aos emuladores automaticamente:
 
-No arquivo `helivi-final/js/firebase.js`, **descomente** a linha:
-```javascript
-// firebase.functions().useEmulator("localhost", 5001);
-```
-Para ficar assim:
-```javascript
-firebase.functions().useEmulator("localhost", 5001);
-```
+- Firestore → `:8080`
+- Auth → `:9099`
+- Functions → `:5001`
 
-⚠️ **Lembre de comentar de volta antes de publicar para produção!**
+**Não é necessário descomentar linhas manualmente.** Em produção (`helivi.web.app`), o sistema usa Firebase na nuvem.
 
----
+### Passo 3 — Abrir o HELIVI
 
-### Passo 3 — Abrir o HELIVI com Live Server
-- No VS Code, abra a pasta `helivi-final`
-- Clique com botão direito em `index.html`
-- Clique em **"Open with Live Server"**
-- O sistema abrirá em `http://127.0.0.1:5500`
+- VS Code → pasta raiz `helivi-final`
+- Botão direito em `index.html` → **Open with Live Server**
+- Sistema em `http://127.0.0.1:5500`
 
----
+### Passo 4 — Testar colaboradores
 
-### Passo 4 — Testar
-- Acesse **Colaboradores** no menu
-- Preencha: Nome, E-mail, Senha e Perfil
-- Clique em **"Criar Colaborador"**
-- O usuário será criado no emulador
-- No painel do emulador (localhost:4000) você vê o usuário criado em tempo real!
+1. Acesse **Colaboradores** no menu
+2. Preencha nome, e-mail, senha e perfil
+3. Clique em **Criar Colaborador**
+4. Veja o usuário criado em http://localhost:4000 → Authentication
 
----
+### Passo 5 — Testar PIX (opcional)
 
-## 🔧 CONFIGURAÇÃO DE CORS (se necessário)
+As credenciais do gateway são definidas **no app**, em **Configurações → Pagamento PIX** (gravadas no Firestore, inclusive no emulador):
 
-Se aparecer erro de CORS ao chamar as Functions localmente, adicione ao `firebase.json`:
-```json
-{
-  "functions": {
-    "source": ".",
-    "predeploy": ["npm --prefix \"$RESOURCE_DIR\" run build 2>/dev/null; true"]
-  }
-}
+- **Mercado Pago** (recomendado): selecione o gateway e cole o **Access Token `APP_USR-`**. Para testes sem cobrança real, use **Modo teste** com o token de um vendedor de teste.
+- **Efi** (alternativo): preencha Client ID, Client Secret e Chave PIX (e mantenha o `.pem` em `functions/`).
+
+No PDV: configure o gateway → abra comanda → pagamento **PIX** → confirme. O emulador Firestore deve estar ativo.
+
+No emulador, o botão **🧪 Simular pagamento** chama `simularConfirmacaoPixTeste` e confirma a comanda sem pagar de verdade (disponível **somente** no emulador local).
+
+Diagnóstico OAuth da Efi (somente Efi):
+
+```bash
+cd helivi-functions
+npm run test:pix        # diagnóstico OAuth Efi
+npm run test:pix:cob    # OAuth + cobrança de teste
 ```
 
 ---
 
-## 📱 VER O NOME DO ATENDENTE NO SISTEMA
+## 🔧 CORS
 
-Após publicar as Functions, toda comanda e pedido criado mostrará automaticamente quem atendeu.
+CORS já está configurado em `functions/index.js` para:
 
-No **histórico**, aparecerá:
+- `http://127.0.0.1:5500`, `http://localhost:5500`
+- `https://helivi.web.app`, `https://helivi.firebaseapp.com`
+
+Se usar outra porta do Live Server (ex.: 5501), ela já está na lista. Só altere o código se usar uma origem diferente.
+
+---
+
+## 📱 NOME DO ATENDENTE NO SISTEMA
+
+Após publicar as triggers, comandas e pedidos registram automaticamente quem atendeu.
+
+**Histórico:**
+
 ```
 Pedido #42 — Mesa 5 · João
 Atendente: Maria (maria@email.com)
 ```
 
-No **KDS da cozinha**, aparecerá no card:
+**KDS cozinha:**
+
 ```
 #42 · Mesa 5
 Atendente: Maria
@@ -182,25 +192,61 @@ Atendente: Maria
 
 ---
 
+## 📜 SCRIPTS ÚTEIS
+
+| Comando | Descrição |
+|---------|-----------|
+| `npm run serve` | Emuladores (Auth + Firestore + Functions) |
+| `npm run deploy` | Publicar functions |
+| `npm run logs` | Ver logs em produção |
+| `npm run efi:status` | Ambiente Efi atual (só Efi) |
+| `npm run efi:homolog` | Usar homologação Efi (só Efi) |
+| `npm run efi:producao` | Usar produção Efi (só Efi) |
+| `npm run test:pix` | Testar OAuth Efi (só Efi) |
+
+> Mercado Pago não usa esses scripts — suas credenciais ficam no Firestore (configuradas em **Configurações → Pagamento PIX**).
+
+---
+
 ## ❓ PROBLEMAS COMUNS
 
-**"Functions não encontradas" ao chamar do sistema:**
-- Verifique se o deploy foi feito com sucesso
-- Verifique se o SDK do Firebase Functions está carregado no HTML
-  (deve ter: `<script src=".../firebase-functions-compat.js">`)
+**"Functions não encontradas"**
 
-**"Permission denied" ao criar colaborador:**
-- Verifique as regras do Firestore (deve permitir escrita para usuários autenticados)
+- Confirme que `npm run serve` está rodando (local) ou que o deploy terminou sem erro (produção)
+- Verifique se o HTML carrega `firebase-functions-compat.js`
 
-**"Billing account not found":**
-- Você precisa ativar o plano Blaze no Firebase Console
+**"Permission denied" ao criar colaborador**
 
-**Emulador não conecta:**
-- Verifique se a porta 5001 não está em uso
-- Tente: `firebase emulators:start --only functions`
+- Usuário precisa estar autenticado
+- Verifique regras do Firestore para escrita autenticada
+
+**"Billing account not found"**
+
+- Ative o plano Blaze no Firebase Console
+
+**Emulador não conecta / porta em uso**
+
+- O script `npm run serve` tenta liberar portas automaticamente
+- Feche instâncias antigas do emulador
+- Confira se nada mais usa as portas 5001, 8080 ou 9099
+
+**PIX falha no emulador**
+
+- Gateway e credenciais salvos em **Configurações → Pagamento PIX**
+- Mercado Pago: token `APP_USR-` (nunca `TEST-`); produção exige chave PIX cadastrada na conta
+- Efi: certificado `.pem` correto em `functions/` e ambiente alinhado (`npm run efi:status`)
+- Comanda deve existir no emulador Firestore antes de gerar PIX
+
+**Erro de CORS**
+
+- Confirme que o Live Server usa porta 5500 ou 5501
+- Verifique a lista `CORS` em `functions/index.js`
 
 ---
 
 ## 📞 SUPORTE
 
-Se tiver dúvidas em qualquer etapa, é só perguntar!
+Documentação adicional:
+
+- [README.md](../README.md)
+- [GUIA_CONFIGURACAO_FINAL.md](../GUIA_CONFIGURACAO_FINAL.md) — PIX Efi, webhook e deploy

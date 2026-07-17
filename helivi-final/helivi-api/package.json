@@ -1,0 +1,20 @@
+{
+  "name": "helivi-api",
+  "description": "API Node HELIVI — substitui Firebase callables (Auth Supabase + service role)",
+  "private": true,
+  "engines": { "node": "20" },
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test:smoke": "node scripts/smoke-test.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.1",
+    "axios": "^1.6.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "firebase-admin": "^12.0.0"
+  }
+}

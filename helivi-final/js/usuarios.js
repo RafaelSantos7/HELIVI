@@ -21,15 +21,25 @@ function carregarUsuarios(ownerUid) {
     console.warn("ownerUid indefinido");
     return;
   }
-  db.collection("usuarios")
-    .where("ownerUid", "==", ownerUid)
-    .onSnapshot(
-      (snap) => {
-        cacheUsuarios = snap.docs.map((d) => ({ docId: d.id, ...d.data() }));
-        renderUsuarios(cacheUsuarios);
-      },
-      (err) => console.error("Erro carregar usuários:", err),
-    );
+  data.usuarios.subscribeByOwner(
+    ownerUid,
+    (lista) => {
+      cacheUsuarios = lista;
+      renderUsuarios(cacheUsuarios);
+    },
+    (err) => console.error("Erro carregar usuários:", err),
+  );
+}
+
+async function refrescarUsuarios() {
+  const ownerUid = window.OWNER_UID;
+  if (!ownerUid || typeof data.usuarios.listByOwner !== "function") return;
+  try {
+    cacheUsuarios = await data.usuarios.listByOwner(ownerUid);
+    renderUsuarios(cacheUsuarios);
+  } catch (err) {
+    console.error("Erro ao atualizar lista:", err);
+  }
 }
 
 function renderUsuarios(lista) {
@@ -62,8 +72,8 @@ function renderUsuarios(lista) {
     <div class="user-item">
       <div class="u-av">${(u.nome || u.email || "?")[0].toUpperCase()}</div>
       <div class="u-info">
-        <div class="u-nm">${u.nome || "—"}</div>
-        <div class="u-em">${u.email}</div>
+        <div class="u-nm">${escHtml(u.nome || "—")}</div>
+        <div class="u-em">${escHtml(u.email)}</div>
         <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
           <span class="badge ${roleColor[u.role] || "b-gry"}">${roleLabel[u.role] || u.role}</span>
           <span style="font-size:11px;color:${u.ativo !== false ? "var(--ok)" : "var(--err)"}">${u.ativo !== false ? "● Ativo" : "● Inativo"}</span>
@@ -112,8 +122,7 @@ function bindUI() {
 
     try {
       if (editDocId) {
-        const fn = firebase.functions().httpsCallable("editarColaborador");
-        const r = await fn({
+        const r = await data.usuarios.editarColaborador({
           docId: editDocId,
           uid: editUid,
           nome,
@@ -121,15 +130,20 @@ function bindUI() {
           senha: senha || null,
           perfil,
         });
-        toast(r.data?.mensagem || "Colaborador atualizado!", "success");
+        toast(r?.mensagem || "Colaborador atualizado!", "success");
       } else {
-        const fn = firebase.functions().httpsCallable("criarColaborador");
-        const r = await fn({ nome, email, senha, perfil });
+        const r = await data.usuarios.criarColaborador({
+          nome,
+          email,
+          senha,
+          perfil,
+        });
         toast(
-          r.data?.mensagem || `Colaborador "${nome}" criado com sucesso!`,
+          r?.mensagem || `Colaborador "${nome}" criado com sucesso!`,
           "success",
         );
       }
+      await refrescarUsuarios();
       resetForm(); // só limpa se chegou aqui (sem erro)
     } catch (err) {
       console.error("Erro colaborador:", err);
@@ -194,9 +208,10 @@ async function excluirColab(docId, uid, nome) {
   );
   if (!ok) return;
   try {
-    const fn = firebase.functions().httpsCallable("excluirColaborador");
-    const r = await fn({ docId, uid });
-    toast(r.data?.mensagem || "Colaborador removido.", "info");
+    const r = await data.usuarios.excluirColaborador({ docId, uid });
+    cacheUsuarios = cacheUsuarios.filter((u) => u.docId !== docId && u.uid !== uid);
+    renderUsuarios(cacheUsuarios);
+    toast(r?.mensagem || "Colaborador removido.", "info");
   } catch (err) {
     toast("Erro ao excluir: " + (err.message || err), "error");
   }

@@ -8,22 +8,29 @@
     />
     <meta name="theme-color" content="#111318" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <title>Login</title>
     <link rel="stylesheet" href="css/styles.css" />
-    <link rel="icon" type="image/png" href="./image/logo-favicon.png" />
+    <link rel="icon" type="image/svg+xml" href="./image/logo.svg" />
   </head>
   <body>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="js/config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-init.js"></script>
     <script src="js/firebase.js"></script>
+    <script src="js/data-firebase.js"></script>
+    <script src="js/data-supabase.js"></script>
+    <script src="js/data.js"></script>
     <script src="js/icons.js"></script>
     <script src="js/auth.js"></script>
     <div class="auth-page">
       <div class="auth-left">
         <div class="auth-brand">
           <img
-            src="./image/logo.png"
+            src="./image/logo.svg"
             alt="HELIVI"
             class="auth-logo"
             onerror="
@@ -177,10 +184,10 @@
       </div>
     </div>
     <script>
-      auth.onAuthStateChanged((u) => {
+      let modo = "e";
+      data.auth.onAuthStateChanged((u) => {
         if (u) location.href = "dashboard.html";
       });
-      let modo = "e";
       const ERROS = {
         "auth/user-not-found": "Usuário não encontrado.",
         "auth/wrong-password": "Senha incorreta.",
@@ -234,9 +241,9 @@
         btn.disabled = true;
         btn.textContent = modo === "e" ? "Entrando..." : "Criando...";
         try {
-          if (modo === "e") await auth.signInWithEmailAndPassword(email, senha);
+          if (modo === "e") await data.auth.signIn(email, senha);
           else {
-            await auth.createUserWithEmailAndPassword(email, senha);
+            await data.auth.createUser(email, senha);
             ok.textContent = "✅ Conta criada! Entrando...";
             ok.style.display = "block";
           }

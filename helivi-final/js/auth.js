@@ -3,7 +3,7 @@
 // Todos os colaboradores usam o ownerUid do admin para acessar os mesmos dados
 'use strict';
 
-const APENAS_ADMIN = ['historico.html','lucro.html','config.html'];
+const APENAS_ADMIN = ['historico.html','lucro.html','config.html','usuarios.html'];
 const PAGINA_ATUAL = window.location.pathname.split('/').pop() || 'index.html';
 window.PERFIL_ATUAL = 'admin';
 window.OWNER_UID    = null; // UID do dono — compartilhado por todos
@@ -13,8 +13,13 @@ const APENAS_COZINHA  = ['cozinha.html'];
 const APENAS_BALCAO   = ['balcao.html'];
 
 function requireAuth(cb) {
-  auth.onAuthStateChanged(async user => {
+  let bootstrappedForUid = null;
+  data.auth.onAuthStateChanged(async user => {
     if (!user) { location.href = 'index.html'; return; }
+
+    // Supabase dispara INITIAL_SESSION + TOKEN_REFRESHED etc.; evita re-bind de forms/listeners
+    if (bootstrappedForUid === user.uid) return;
+    bootstrappedForUid = user.uid;
 
     // Busca perfil E ownerUid do colaborador
     const { perfil, ownerUid } = await buscarPerfilEOwner(user.uid);
@@ -36,18 +41,17 @@ function requireAuth(cb) {
       location.href = 'dashboard.html'; return;
     }
 
-    if (cb) cb(user, perfil, ownerUid);
+    if (cb) cb(user, perfil, safeOwnerUid);
   });
 }
 
 async function buscarPerfilEOwner(uid) {
   try {
-    const snap = await db.collection('usuarios').where('uid','==',uid).limit(1).get();
-    if (!snap.empty) {
-      const data = snap.docs[0].data();
+    const row = await data.usuarios.buscarPerfilPorUid(uid);
+    if (row) {
       return {
-        perfil:   data.role || 'atendente',
-        ownerUid: data.ownerUid || uid // ownerUid salvo quando admin criou o colaborador
+        perfil:   row.role || 'atendente',
+        ownerUid: row.ownerUid || uid // ownerUid salvo quando admin criou o colaborador
       };
     }
     // É o próprio dono da conta
@@ -57,10 +61,21 @@ async function buscarPerfilEOwner(uid) {
   }
 }
 
-function logoutUser()    { auth.signOut().then(() => location.href = 'index.html'); }
-function getCurrentUID() { return auth.currentUser?.uid || null; }
-function getOwnerUID()   { return window.OWNER_UID || auth.currentUser?.uid || null; }
+function logoutUser()    { data.auth.signOut().then(() => location.href = 'index.html'); }
+function getCurrentUID() { return data.auth.currentUser()?.uid || null; }
+function getOwnerUID()   { return window.OWNER_UID || data.auth.currentUser()?.uid || null; }
 function getInitials(s)  { return (s||'?')[0].toUpperCase(); }
+
+/** Escape HTML — use em toda interpolação de dados do DB/usuário. */
+function escHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+window.escHtml = escHtml;
 
 // ── Toast ─────────────────────────────────────────────────
 const _tw = (() => {

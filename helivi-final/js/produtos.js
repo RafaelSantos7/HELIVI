@@ -43,24 +43,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ── Load produtos ─────────────────────────────────────────
 function loadProds(uid) {
-  db.collection("produtos")
-    .where("uid", "==", uid)
-    .onSnapshot(
-      (snap) => {
-        cache = snap.docs
-          .map((d) => ({ id: d.id, ...d.data() }))
-          .sort(
-            (a, b) =>
-              (a.categoria || "").localeCompare(b.categoria || "") ||
-              (a.nome || "").localeCompare(b.nome || ""),
-          );
-        renderList(cache);
-      },
-      (err) => {
-        document.getElementById("listaProds").innerHTML =
-          `<div class="empty-box"><div class="empty-icon">${ic("alert")}</div><div class="empty-title">Erro ao carregar</div><div class="empty-sub">${err.message}</div></div>`;
-      },
-    );
+  data.produtos.subscribeByOwner(
+    uid,
+    (lista) => {
+      cache = lista.sort(
+        (a, b) =>
+          (a.categoria || "").localeCompare(b.categoria || "") ||
+          (a.nome || "").localeCompare(b.nome || ""),
+      );
+      renderList(cache);
+    },
+    (err) => {
+      document.getElementById("listaProds").innerHTML =
+        `<div class="empty-box"><div class="empty-icon">${ic("alert")}</div><div class="empty-title">Erro ao carregar</div><div class="empty-sub">${err.message}</div></div>`;
+    },
+  );
 }
 
 function renderList(lista, filtro = "") {
@@ -169,10 +166,16 @@ function criarCatCustom() {
 }
 
 // ── Formulário — CORRIGIDO ────────────────────────────────
+let formBound = false;
 function bindForm(uid) {
+  if (formBound) return;
+  formBound = true;
   const form = document.getElementById("formProd");
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
+    const btn = document.getElementById("btnSalvar");
+    if (btn.disabled) return; // evita duplo clique / listeners fantasma
+
     // Validação
     const nome = document.getElementById("fNome").value.trim();
     const preco = parseFloat(document.getElementById("fPreco").value);
@@ -192,7 +195,6 @@ function bindForm(uid) {
     } else clearErr("fCusto");
     if (!valid) return;
 
-    const btn = document.getElementById("btnSalvar");
     const original = btn.innerHTML;
     // ✅ CORRIGIDO: desabilita + mostra loading
     btn.disabled = true;
@@ -204,18 +206,21 @@ function bindForm(uid) {
       custo,
       categoria: catSel || "Outros",
       uid: uid,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: data.serverTimestamp(),
     };
 
     try {
       if (editId) {
-        await db.collection("produtos").doc(editId).update(dados);
+        const updated = await data.produtos.update(editId, dados);
+        cache = cache.map((p) => (p.id === editId ? { ...p, ...updated } : p));
         toast("Produto atualizado com sucesso!", "success");
       } else {
-        dados.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-        await db.collection("produtos").add(dados);
+        dados.createdAt = data.serverTimestamp();
+        const created = await data.produtos.create(dados);
+        cache = [...cache, created];
         toast("Produto cadastrado!", "success");
       }
+      renderList(cache, document.getElementById("buscaProd")?.value || "");
       // ✅ CORRIGIDO: resetar SEMPRE após salvar
       resetForm();
     } catch (err) {
@@ -297,7 +302,10 @@ async function excluir(id, nome) {
   );
   if (!ok) return;
   try {
-    await db.collection("produtos").doc(id).delete();
+    await data.produtos.remove(id);
+    cache = cache.filter((p) => p.id !== id);
+    const filtro = document.getElementById("buscaProd")?.value || "";
+    renderList(cache, filtro);
     toast("Produto excluído", "info");
   } catch (err) {
     toast("Erro: " + err.message, "error");

@@ -1,0 +1,97 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers de tenant ────────────────────────────────────────────────
+    function autenticado() {
+      return request.auth != null;
+    }
+
+    // ownerUid efetivo do chamador:
+    //  - colaborador: claim `ownerUid` (setado em criarColaborador/backfill);
+    //  - conta principal: sem claim → o próprio uid é o tenant.
+    function ownerAtual() {
+      return request.auth.token.ownerUid != null
+        ? request.auth.token.ownerUid
+        : request.auth.uid;
+    }
+
+    // Documento pertence ao tenant do chamador (campo ownerUid ou uid legado).
+    function doTenant(rec) {
+      return rec.ownerUid == ownerAtual() || rec.uid == ownerAtual();
+    }
+
+    // ── Configuração de pagamento (somente leitura no client) ────────────
+    // Escrita apenas via callable salvarConfigPagamentoPix (Admin SDK).
+    match /configuracoes/pagamentos {
+      allow read:  if autenticado();
+      allow write: if false;
+    }
+
+    // Segredos: nem leitura nem escrita pelo client (só Admin SDK).
+    match /configuracoes/segredos_pagamento {
+      allow read, write: if false;
+    }
+
+    // Demais docs de configuracoes: leitura autenticada, escrita só backend.
+    match /configuracoes/{docId} {
+      allow read:  if autenticado();
+      allow write: if false;
+    }
+
+    // ── Usuários (colaboradores) ─────────────────────────────────────────
+    // Leitura limitada ao próprio tenant; escrita só via callables (Admin SDK).
+    match /usuarios/{docId} {
+      allow read:  if autenticado() && resource.data.ownerUid == ownerAtual();
+      allow write: if false;
+    }
+
+    // ── Produtos (tenant no campo `uid`) ─────────────────────────────────
+    match /produtos/{docId} {
+      allow read:   if autenticado() && resource.data.uid == ownerAtual();
+      allow create: if autenticado() && request.resource.data.uid == ownerAtual();
+      allow update, delete: if autenticado() && resource.data.uid == ownerAtual();
+    }
+
+    // ── Comandas ─────────────────────────────────────────────────────────
+    match /comandas/{docId} {
+      allow read:   if autenticado() && doTenant(resource.data);
+      allow create: if autenticado() && doTenant(request.resource.data);
+      allow update: if autenticado() && doTenant(resource.data);
+      allow delete: if false;
+    }
+
+    // ── Pedidos (histórico) ──────────────────────────────────────────────
+    match /pedidos/{docId} {
+      allow read:   if autenticado() && doTenant(resource.data);
+      allow create: if autenticado() && doTenant(request.resource.data);
+      allow update, delete: if false;
+    }
+
+    // ── KDS cozinha / balcão ─────────────────────────────────────────────
+    match /kds_cozinha/{docId} {
+      allow read:   if autenticado() && doTenant(resource.data);
+      allow create: if autenticado() && doTenant(request.resource.data);
+      allow update: if autenticado() && doTenant(resource.data);
+      allow delete: if false;
+    }
+    match /kds_balcao/{docId} {
+      allow read:   if autenticado() && doTenant(resource.data);
+      allow create: if autenticado() && doTenant(request.resource.data);
+      allow update: if autenticado() && doTenant(resource.data);
+      allow delete: if false;
+    }
+
+    // ── Registros de pagamento PIX (somente backend) ─────────────────────
+    match /pagamentos_pix/{docId} {
+      allow read:  if autenticado();
+      allow write: if false;
+    }
+
+    // ── Contador de numeração por estabelecimento (doc cnt_{ownerUid}) ───
+    match /config/{docId} {
+      allow read, write: if autenticado() && docId == 'cnt_' + ownerAtual();
+    }
+  }
+}
