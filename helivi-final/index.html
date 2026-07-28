@@ -179,9 +179,12 @@
     <script src="js/icons.js"></script>
     <script src="js/auth.js"></script>
     <script>
-      let modo = "e";
+      let criandoConta = false;
+
       data.auth.onAuthStateChanged((u) => {
-        if (u) location.href = "dashboard.html";
+        if (u && !criandoConta) {
+          location.href = "dashboard.html";
+        }
       });
       const ERROS = {
         "auth/user-not-found": "Usuário não encontrado.",
@@ -238,11 +241,17 @@
         try {
           if (modo === "e") await data.auth.signIn(email, senha);
           else {
+            criandoConta = true;
+
             await data.auth.createUser(email, senha);
+
             ok.textContent = "✅ Conta criada! Entrando...";
             ok.style.display = "block";
+
+            location.href = "dashboard.html";
           }
         } catch (e) {
+          criandoConta = false;
           err.textContent = ERROS[e.code] || "Erro. Tente novamente.";
           err.style.display = "block";
           btn.disabled = false;
