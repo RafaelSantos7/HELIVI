@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <title>Configurações</title>
     <link rel="stylesheet" href="css/styles.css" />
-    <link rel="icon" type="image/svg+xml" href="./image/logo.svg" />
+    <link rel="icon" type="image/svg+xml" href="./image/logo-favicon2.png" />
   </head>
   <body>
     <aside class="sidebar" id="sidebar">
@@ -29,7 +29,7 @@
       <div class="sidebar-brand">
         <div class="sb-logo-wrap">
           <img
-            src="./image/logo.svg"
+            src="./image/logo-favicon2.png"
             alt="HELIVI"
             onerror="
               this.style.display = 'none';
@@ -259,7 +259,13 @@
         </div>
         <div class="card" style="padding: 22px; margin-bottom: 18px">
           <div
-            style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px"
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              gap: 12px;
+              margin-bottom: 10px;
+            "
           >
             <div class="cfg-title" style="margin-bottom: 0">Pagamento PIX</div>
             <div
@@ -290,10 +296,17 @@
               <span id="pixGatewayAtivoTexto">Carregando...</span>
             </div>
           </div>
-          <p style="font-size: 13px; color: var(--t3); line-height: 1.5; margin: 0 0 14px">
-            Escolha o gateway ativo e configure as credenciais. O PDV usa o provedor
-            selecionado automaticamente. Segredos são gravados com segurança e não
-            podem ser lidos pelo navegador após salvar.
+          <p
+            style="
+              font-size: 13px;
+              color: var(--t3);
+              line-height: 1.5;
+              margin: 0 0 14px;
+            "
+          >
+            Escolha o gateway ativo e configure as credenciais. O PDV usa o
+            provedor selecionado automaticamente. Segredos são gravados com
+            segurança e não podem ser lidos pelo navegador após salvar.
           </p>
           <div class="field">
             <label>Gateway PIX ativo</label>
@@ -333,7 +346,8 @@
             </div>
             <p style="font-size: 12px; color: var(--t4); margin: 0">
               Certificado <code>.pem</code> continua em
-              <code>helivi-functions/functions/</code> (mTLS obrigatório da Efi).
+              <code>helivi-functions/functions/</code> (mTLS obrigatório da
+              Efi).
             </p>
           </div>
           <div id="credMp" style="display: none">
@@ -347,8 +361,12 @@
                 autocomplete="new-password"
               />
             </div>
-            <details style="margin-top: 14px; font-size: 13px; color: var(--t3)">
-              <summary style="cursor: pointer; font-weight: 600; color: var(--t2)">
+            <details
+              style="margin-top: 14px; font-size: 13px; color: var(--t3)"
+            >
+              <summary
+                style="cursor: pointer; font-weight: 600; color: var(--t2)"
+              >
                 Opções avançadas (sandbox / testes)
               </summary>
               <div class="field" style="margin-top: 12px">
@@ -364,29 +382,52 @@
               <div class="cfg-row" style="margin-top: 8px">
                 <div>
                   <div class="cfg-lbl">Modo teste Mercado Pago</div>
-                  <div class="cfg-dsc" id="mpSandboxHint">Desmarcado = PIX real (produção)</div>
+                  <div class="cfg-dsc" id="mpSandboxHint">
+                    Desmarcado = PIX real (produção)
+                  </div>
                 </div>
                 <label class="toggle"
-                  ><input type="checkbox" id="mpAmbienteTeste" /><span class="tog-tr"></span
+                  ><input type="checkbox" id="mpAmbienteTeste" /><span
+                    class="tog-tr"
+                  ></span
                 ></label>
               </div>
             </details>
             <div class="field" style="display: none">
               <input class="input" id="mpAccessTokenTeste" type="password" />
             </div>
-            <p style="font-size: 12px; color: var(--t3); margin: 12px 0 0; line-height: 1.6; padding: 10px; background: rgba(34,197,94,0.08); border-radius: var(--r2); border: 1px solid rgba(34,197,94,0.2)">
+            <p
+              style="
+                font-size: 12px;
+                color: var(--t3);
+                margin: 12px 0 0;
+                line-height: 1.6;
+                padding: 10px;
+                background: rgba(34, 197, 94, 0.08);
+                border-radius: var(--r2);
+                border: 1px solid rgba(34, 197, 94, 0.2);
+              "
+            >
               <strong>Produção (padrão):</strong> cole o <code>APP_USR</code> de
-              <strong>Credenciais de produção</strong>, deixe <em>Modo teste</em> desmarcado.
-              Exige chave PIX cadastrada no app Mercado Pago. Token <code>TEST-</code> não funciona.
+              <strong>Credenciais de produção</strong>, deixe
+              <em>Modo teste</em> desmarcado. Exige chave PIX cadastrada no app
+              Mercado Pago. Token <code>TEST-</code> não funciona.
             </p>
           </div>
         </div>
         <div class="card" style="padding: 22px; margin-bottom: 18px">
           <div class="cfg-title">Maquininha de Cartão</div>
-          <p style="font-size: 13px; color: var(--t3); line-height: 1.5; margin: 0 0 14px">
-            Integração com maquininha física para Crédito/Débito. O PDV envia o valor
-            automaticamente para o terminal. Credenciais ficam protegidas no servidor
-            (mesmo padrão do PIX).
+          <p
+            style="
+              font-size: 13px;
+              color: var(--t3);
+              line-height: 1.5;
+              margin: 0 0 14px;
+            "
+          >
+            Integração com maquininha física para Crédito/Débito. O PDV envia o
+            valor automaticamente para o terminal. Credenciais ficam protegidas
+            no servidor (mesmo padrão do PIX).
           </p>
           <div class="field">
             <label>Maquininha de cartão ativa</label>
@@ -415,11 +456,22 @@
                 autocomplete="new-password"
               />
             </div>
-            <p style="font-size: 12px; color: var(--t3); margin: 12px 0 0; line-height: 1.6; padding: 10px; background: rgba(59,130,246,0.08); border-radius: var(--r2); border: 1px solid rgba(59,130,246,0.2)">
-              <strong>Mercado Pago Point:</strong> cadastre a maquininha no app MP (modo PDV)
-              e copie o <code>device_id</code> em
-              <em>Suas integrações → Point → Terminais</em>. Modelos compatíveis:
-              Point Pro, Smart e Mini com integração via API/Cloud.
+            <p
+              style="
+                font-size: 12px;
+                color: var(--t3);
+                margin: 12px 0 0;
+                line-height: 1.6;
+                padding: 10px;
+                background: rgba(59, 130, 246, 0.08);
+                border-radius: var(--r2);
+                border: 1px solid rgba(59, 130, 246, 0.2);
+              "
+            >
+              <strong>Mercado Pago Point:</strong> cadastre a maquininha no app
+              MP (modo PDV) e copie o <code>device_id</code> em
+              <em>Suas integrações → Point → Terminais</em>. Modelos
+              compatíveis: Point Pro, Smart e Mini com integração via API/Cloud.
             </p>
           </div>
         </div>
@@ -656,15 +708,10 @@
         >
       </div>
     </nav>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
     <script src="js/config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase-init.js"></script>
-    <script src="js/firebase.js"></script>
-    <script src="js/data-firebase.js"></script>
+    <script src="js/supabase.js"></script>
     <script src="js/data-supabase.js"></script>
     <script src="js/data.js"></script>
     <script src="js/icons.js"></script>
@@ -688,15 +735,25 @@
         const credEfiEl = document.getElementById("credEfi");
         const credMpEl = document.getElementById("credMp");
         const mpAmbienteTesteEl = document.getElementById("mpAmbienteTeste");
-        const mpAccessTokenSandboxEl = document.getElementById("mpAccessTokenSandbox");
-        const mpAccessTokenProducaoEl = document.getElementById("mpAccessTokenProducao");
-        const mpAccessTokenTesteEl = document.getElementById("mpAccessTokenTeste");
+        const mpAccessTokenSandboxEl = document.getElementById(
+          "mpAccessTokenSandbox",
+        );
+        const mpAccessTokenProducaoEl = document.getElementById(
+          "mpAccessTokenProducao",
+        );
+        const mpAccessTokenTesteEl =
+          document.getElementById("mpAccessTokenTeste");
         const maquininhaAtivaEl = document.getElementById("maquininhaAtiva");
         const credMpPointEl = document.getElementById("credMpPoint");
         const mpPointDeviceIdEl = document.getElementById("mpPointDeviceId");
-        const mpPointAccessTokenEl = document.getElementById("mpPointAccessToken");
-        const pixGatewayAtivoBadgeEl = document.getElementById("pixGatewayAtivoBadge");
-        const pixGatewayAtivoTextoEl = document.getElementById("pixGatewayAtivoTexto");
+        const mpPointAccessTokenEl =
+          document.getElementById("mpPointAccessToken");
+        const pixGatewayAtivoBadgeEl = document.getElementById(
+          "pixGatewayAtivoBadge",
+        );
+        const pixGatewayAtivoTextoEl = document.getElementById(
+          "pixGatewayAtivoTexto",
+        );
 
         function mostrarGatewayPixAtivo(gateway) {
           const nomes = {
@@ -713,7 +770,8 @@
 
         function atualizarCamposMaquininha() {
           const m = maquininhaAtivaEl.value;
-          credMpPointEl.style.display = m === "mercadopago_point" ? "block" : "none";
+          credMpPointEl.style.display =
+            m === "mercadopago_point" ? "block" : "none";
         }
 
         function atualizarCamposPixGateway() {
@@ -734,7 +792,8 @@
         maquininhaAtivaEl.addEventListener("change", atualizarCamposMaquininha);
 
         // Carrega gateway ativo (segredos não são legíveis pelo cliente)
-        data.config.getPagamentos()
+        data.config
+          .getPagamentos()
           .then((pag) => {
             if (pag && pag.gatewayAtivo) {
               pixGatewayEl.value = pag.gatewayAtivo;
@@ -761,82 +820,92 @@
             atualizarCamposMaquininha();
           });
 
-        document.getElementById("btnSalvar").addEventListener("click", async () => {
-          localStorage.setItem(
-            "nomeEstab",
-            document.getElementById("cNome").value.trim() || "HELIVI",
-          );
-          localStorage.setItem(
-            "msgFinal",
-            document.getElementById("cMsg").value.trim() || "Obrigado!",
-          );
-          localStorage.setItem(
-            "whatsappTel",
-            document.getElementById("cWA").value.trim(),
-          );
-          localStorage.setItem(
-            "somAtivo",
-            document.getElementById("tSom").checked,
-          );
-          localStorage.setItem(
-            "impressaoAuto",
-            document.getElementById("tImp").checked,
-          );
+        document
+          .getElementById("btnSalvar")
+          .addEventListener("click", async () => {
+            localStorage.setItem(
+              "nomeEstab",
+              document.getElementById("cNome").value.trim() || "HELIVI",
+            );
+            localStorage.setItem(
+              "msgFinal",
+              document.getElementById("cMsg").value.trim() || "Obrigado!",
+            );
+            localStorage.setItem(
+              "whatsappTel",
+              document.getElementById("cWA").value.trim(),
+            );
+            localStorage.setItem(
+              "somAtivo",
+              document.getElementById("tSom").checked,
+            );
+            localStorage.setItem(
+              "impressaoAuto",
+              document.getElementById("tImp").checked,
+            );
 
-          const gatewayAtivo = pixGatewayEl.value;
-          const efiClientId = document.getElementById("efiClientId").value.trim();
-          const efiClientSecret = document.getElementById("efiClientSecret").value.trim();
-          const efiPixKey = document.getElementById("efiPixKey").value.trim();
-          const mpAccessTokenSandbox = mpAccessTokenSandboxEl.value.trim();
-          const mpAccessTokenTeste = mpAccessTokenTesteEl.value.trim();
-          const mpAccessTokenProducao = mpAccessTokenProducaoEl.value.trim();
-          const mpAmbienteTeste = mpAmbienteTesteEl.checked;
-          const maquininhaAtiva = maquininhaAtivaEl.value;
-          const mpPointDeviceId = mpPointDeviceIdEl.value.trim();
-          const mpPointAccessToken = mpPointAccessTokenEl.value.trim();
+            const gatewayAtivo = pixGatewayEl.value;
+            const efiClientId = document
+              .getElementById("efiClientId")
+              .value.trim();
+            const efiClientSecret = document
+              .getElementById("efiClientSecret")
+              .value.trim();
+            const efiPixKey = document.getElementById("efiPixKey").value.trim();
+            const mpAccessTokenSandbox = mpAccessTokenSandboxEl.value.trim();
+            const mpAccessTokenTeste = mpAccessTokenTesteEl.value.trim();
+            const mpAccessTokenProducao = mpAccessTokenProducaoEl.value.trim();
+            const mpAmbienteTeste = mpAmbienteTesteEl.checked;
+            const maquininhaAtiva = maquininhaAtivaEl.value;
+            const mpPointDeviceId = mpPointDeviceIdEl.value.trim();
+            const mpPointAccessToken = mpPointAccessTokenEl.value.trim();
 
-          if (maquininhaAtiva === "mercadopago_point" && !mpPointDeviceId) {
-            toast("Informe o Device ID da maquininha Point.", "warning");
-            return;
-          }
+            if (maquininhaAtiva === "mercadopago_point" && !mpPointDeviceId) {
+              toast("Informe o Device ID da maquininha Point.", "warning");
+              return;
+            }
 
-          if (gatewayAtivo === "mercadopago") {
-            for (const t of [mpAccessTokenSandbox, mpAccessTokenProducao, mpAccessTokenTeste]) {
-              if (t.startsWith("TEST-")) {
-                toast(
-                  "Token TEST- não funciona no PIX (/v1/orders). Use APP_USR da conta vendedor teste.",
-                  "warning",
-                );
-                return;
+            if (gatewayAtivo === "mercadopago") {
+              for (const t of [
+                mpAccessTokenSandbox,
+                mpAccessTokenProducao,
+                mpAccessTokenTeste,
+              ]) {
+                if (t.startsWith("TEST-")) {
+                  toast(
+                    "Token TEST- não funciona no PIX (/v1/orders). Use APP_USR da conta vendedor teste.",
+                    "warning",
+                  );
+                  return;
+                }
               }
             }
-          }
 
-          try {
-            await data.config.salvarPagamentoPix({
-              gatewayAtivo,
-              mpAmbienteTeste,
-              efiClientId,
-              efiClientSecret,
-              efiPixKey,
-              mpAccessTokenProducao,
-              mpAccessTokenSandbox,
-              maquininhaAtiva,
-              mpPointDeviceId,
-              mpPointAccessToken,
-            });
+            try {
+              await data.config.salvarPagamentoPix({
+                gatewayAtivo,
+                mpAmbienteTeste,
+                efiClientId,
+                efiClientSecret,
+                efiPixKey,
+                mpAccessTokenProducao,
+                mpAccessTokenSandbox,
+                maquininhaAtiva,
+                mpPointDeviceId,
+                mpPointAccessToken,
+              });
 
-            mostrarGatewayPixAtivo(gatewayAtivo);
-            toast("Configurações salvas!", "success");
-            document.getElementById("efiClientSecret").value = "";
-            mpAccessTokenSandboxEl.value = "";
-            mpAccessTokenProducaoEl.value = "";
-            mpPointAccessTokenEl.value = "";
-          } catch (err) {
-            console.error(err);
-            toast("Erro ao salvar PIX: " + (err.message || err), "error");
-          }
-        });
+              mostrarGatewayPixAtivo(gatewayAtivo);
+              toast("Configurações salvas!", "success");
+              document.getElementById("efiClientSecret").value = "";
+              mpAccessTokenSandboxEl.value = "";
+              mpAccessTokenProducaoEl.value = "";
+              mpPointAccessTokenEl.value = "";
+            } catch (err) {
+              console.error(err);
+              toast("Erro ao salvar PIX: " + (err.message || err), "error");
+            }
+          });
         document
           .getElementById("btnSair")
           .addEventListener("click", logoutUser);

@@ -19,7 +19,7 @@ let ultimoCount = 0;
 document.addEventListener("DOMContentLoaded", () => {
   requireAuth((user, perfil, ownerUid) => {
     // KDS filtra pelo tenant (ownerUid), não pelo UID do login de cozinha/balcão.
-    uidAtual = ownerUid || window.OWNER_UID || user.uid;
+    uidAtual = ownerUid || window.OWNER_UID || user.id || user.uid;
     window.OWNER_UID = uidAtual;
     iniciarKDS(uidAtual);
     iniciarRelogio();
@@ -31,22 +31,22 @@ function iniciarKDS(uid) {
   inicio.setHours(0, 0, 0, 0);
   const setor = window.KDS_SETOR === "balcao" ? "balcao" : "cozinha";
   data.kds.subscribe(setor, uid, (lista) => {
-      const inicioDia = new Date();
-      inicioDia.setHours(0, 0, 0, 0);
-      const novos = lista.filter((p) => {
-          const dt = p.serverTime?.toDate
-            ? p.serverTime.toDate()
-            : new Date(p.createdAt || 0);
-          return dt >= inicioDia;
-        });
-      // Detecta novos pedidos para tocar som
-      const novoCount = novos.filter((p) => p.status === "novo").length;
-      if (novoCount > ultimoCount) beepKDS();
-      ultimoCount = novoCount;
-      todosCards = novos;
-      renderBoard();
-      atualizarStats();
+    const inicioDia = new Date();
+    inicioDia.setHours(0, 0, 0, 0);
+    const novos = lista.filter((p) => {
+      const dt = p.serverTime?.toDate
+        ? p.serverTime.toDate()
+        : new Date(p.createdAt || 0);
+      return dt >= inicioDia;
     });
+    // Detecta novos pedidos para tocar som
+    const novoCount = novos.filter((p) => p.status === "novo").length;
+    if (novoCount > ultimoCount) beepKDS();
+    ultimoCount = novoCount;
+    todosCards = novos;
+    renderBoard();
+    atualizarStats();
+  });
 
   // Timer de refresh dos contadores a cada 30s
   timerInterval = setInterval(() => renderBoard(), 30000);
@@ -145,9 +145,9 @@ async function mudarStatus(id, novoStatus) {
   try {
     const setor = window.KDS_SETOR === "balcao" ? "balcao" : "cozinha";
     await data.kds.update(setor, id, {
-        status: novoStatus,
-        [`statusAt_${novoStatus}`]: data.serverTimestamp(),
-      });
+      status: novoStatus,
+      [`statusAt_${novoStatus}`]: data.serverTimestamp(),
+    });
     // Feedback sonoro
     if (novoStatus === "pronto") beepOk();
     else beep(660, 0.1);

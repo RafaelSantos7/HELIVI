@@ -1,49 +1,152 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<meta name="theme-color" content="#111318">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<title>Cozinha</title>
-<link rel="stylesheet" href="css/styles.css">
-<link rel="icon" type="image/svg+xml" href="./image/logo.svg" />
-</head>
-<body>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="js/config.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase-init.js"></script>
-<script src="js/firebase.js"></script>
-<script src="js/data-firebase.js"></script>
-<script src="js/data-supabase.js"></script>
-<script src="js/data.js"></script>
-<script src="js/icons.js"></script>
-<script src="js/auth.js"></script>
-<body class="kds-page">
-<header class="kds-top">
-  <div class="kds-logo-wrap"><img src="./image/logo.svg" alt="HELIVI" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="kds-logo-fb"><div class="kds-logo-mk">H</div><div class="kds-logo-nm">HELIVI</div></div></div>
-  <div class="kds-div"></div>
-  <div class="kds-ttl">Cozinha</div>
-  <span class="kds-sec cz"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M6 13.87A4 4 0 017.41 6a5.11 5.11 0 0111.18 0A4 4 0 0118 13.87V21H6z"/><line x1="6" y1="17" x2="18" y2="17"/></svg> Cozinha</span>
-  <div class="kds-sp"></div>
-  <div class="kds-stats">
-    <div class="kds-st"><div class="kds-stv" id="statNovos">0</div><div class="kds-stl">Novos</div></div>
-    <div class="kds-st"><div class="kds-stv" id="statPrep">0</div><div class="kds-stl">Preparo</div></div>
-    <div class="kds-st"><div class="kds-stv" id="statProntos">0</div><div class="kds-stl">Prontos</div></div>
-  </div>
-  <div class="kds-div"></div>
-  <div class="kds-clk" id="kdsClock">00:00:00</div>
-  <div class="kds-div"></div>
-  <a href="dashboard.html" class="kds-nav-a">← PDV</a>
-</header>
-<div class="kds-board">
-  <div class="kds-col col-novo"><div class="kds-col-hd"><span class="kds-col-lbl">Novos Pedidos</span><span class="kds-col-n" id="badge-novo">0</span></div><div class="kds-col-body" id="col-novo"><div class="kds-col-empty"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><div class="kds-col-empty-t">Aguardando pedidos</div></div></div></div>
-  <div class="kds-col col-prep"><div class="kds-col-hd"><span class="kds-col-lbl">Em Preparação</span><span class="kds-col-n" id="badge-preparando">0</span></div><div class="kds-col-body" id="col-preparando"><div class="kds-col-empty"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M6 13.87A4 4 0 017.41 6a5.11 5.11 0 0111.18 0A4 4 0 0118 13.87V21H6z"/><line x1="6" y1="17" x2="18" y2="17"/></svg><div class="kds-col-empty-t">Nenhum em preparo</div></div></div></div>
-  <div class="kds-col col-prt"><div class="kds-col-hd"><span class="kds-col-lbl">Pronto</span><span class="kds-col-n" id="badge-pronto">0</span></div><div class="kds-col-body" id="col-pronto"><div class="kds-col-empty"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><div class="kds-col-empty-t">Nenhum pronto</div></div></div></div>
-</div>
-<script>window.KDS_SETOR='cozinha';</script>
-<script src="js/kds.js"></script>
-</body></html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"
+    />
+    <meta name="theme-color" content="#111318" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>Cozinha</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="icon" type="image/svg+xml" href="./image/logo-favicon2.png" />
+  </head>
+
+  <body class="kds-page">
+    <header class="kds-top">
+      <div class="kds-logo-wrap">
+        <img
+          src="./image/logo-favicon2.png"
+          alt="HELIVI"
+          onerror="
+            this.style.display = 'none';
+            this.nextElementSibling.style.display = 'flex';
+          "
+        />
+        <div class="kds-logo-fb">
+          <div class="kds-logo-mk">H</div>
+          <div class="kds-logo-nm">HELIVI</div>
+        </div>
+      </div>
+      <div class="kds-div"></div>
+      <div class="kds-ttl">Cozinha</div>
+      <span class="kds-sec cz"
+        ><svg
+          width="17"
+          height="17"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.75"
+        >
+          <path
+            d="M6 13.87A4 4 0 017.41 6a5.11 5.11 0 0111.18 0A4 4 0 0118 13.87V21H6z"
+          />
+          <line x1="6" y1="17" x2="18" y2="17" />
+        </svg>
+        Cozinha</span
+      >
+      <div class="kds-sp"></div>
+      <div class="kds-stats">
+        <div class="kds-st">
+          <div class="kds-stv" id="statNovos">0</div>
+          <div class="kds-stl">Novos</div>
+        </div>
+        <div class="kds-st">
+          <div class="kds-stv" id="statPrep">0</div>
+          <div class="kds-stl">Preparo</div>
+        </div>
+        <div class="kds-st">
+          <div class="kds-stv" id="statProntos">0</div>
+          <div class="kds-stl">Prontos</div>
+        </div>
+      </div>
+      <div class="kds-div"></div>
+      <div class="kds-clk" id="kdsClock">00:00:00</div>
+      <div class="kds-div"></div>
+      <a href="dashboard.html" class="kds-nav-a">← PDV</a>
+    </header>
+    <div class="kds-board">
+      <div class="kds-col col-novo">
+        <div class="kds-col-hd">
+          <span class="kds-col-lbl">Novos Pedidos</span
+          ><span class="kds-col-n" id="badge-novo">0</span>
+        </div>
+        <div class="kds-col-body" id="col-novo">
+          <div class="kds-col-empty">
+            <svg
+              width="34"
+              height="34"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            <div class="kds-col-empty-t">Aguardando pedidos</div>
+          </div>
+        </div>
+      </div>
+      <div class="kds-col col-prep">
+        <div class="kds-col-hd">
+          <span class="kds-col-lbl">Em Preparação</span
+          ><span class="kds-col-n" id="badge-preparando">0</span>
+        </div>
+        <div class="kds-col-body" id="col-preparando">
+          <div class="kds-col-empty">
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+            >
+              <path
+                d="M6 13.87A4 4 0 017.41 6a5.11 5.11 0 0111.18 0A4 4 0 0118 13.87V21H6z"
+              />
+              <line x1="6" y1="17" x2="18" y2="17" />
+            </svg>
+            <div class="kds-col-empty-t">Nenhum em preparo</div>
+          </div>
+        </div>
+      </div>
+      <div class="kds-col col-prt">
+        <div class="kds-col-hd">
+          <span class="kds-col-lbl">Pronto</span
+          ><span class="kds-col-n" id="badge-pronto">0</span>
+        </div>
+        <div class="kds-col-body" id="col-pronto">
+          <div class="kds-col-empty">
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+            <div class="kds-col-empty-t">Nenhum pronto</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="js/config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/data-supabase.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/icons.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+      window.KDS_SETOR = "cozinha";
+    </script>
+    <script src="js/kds.js"></script>
+  </body>
+</html>

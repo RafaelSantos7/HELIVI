@@ -1,7 +1,7 @@
 // lucro.js — HELIVI
 document.addEventListener("DOMContentLoaded", () => {
   requireAuth((user, perfil, ownerUid) => {
-    const oUid = ownerUid || window.OWNER_UID || user.uid;
+    const oUid = ownerUid || window.OWNER_UID || user.id || user.uid;
     window.OWNER_UID = oUid;
     setupTopbar(user, perfil, oUid);
     loadLucro(oUid, "hoje");

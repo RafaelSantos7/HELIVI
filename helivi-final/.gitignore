@@ -10,7 +10,6 @@ helivi-functions/.env.local
 helivi-functions/functions/.env.local
 helivi-api/.env.local
 helivi-api/.env
-js/config.js
 helivi-functions/functions/efi.local.json
 
 # Certificados Efi Bank

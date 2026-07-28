@@ -1,7 +1,7 @@
 // historico.js — HELIVI
 document.addEventListener("DOMContentLoaded", () => {
   requireAuth((user, perfil, ownerUid) => {
-    const oUid = ownerUid || window.OWNER_UID || user.uid;
+    const oUid = ownerUid || window.OWNER_UID || user.id || user.uid;
     window.OWNER_UID = oUid;
     setupTopbar(user, perfil, oUid);
     load(oUid, "hoje");
@@ -96,8 +96,8 @@ function renderHist(list) {
 }
 function detalhe(id) {
   data.pedidos.get(id).then((p) => {
-      if (!p) return;
-      document.getElementById("detBody").innerHTML = `
+    if (!p) return;
+    document.getElementById("detBody").innerHTML = `
       <p style="font-size:11px;font-weight:700;color:var(--text-500);text-transform:uppercase;letter-spacing:.5px">Pedido #${p.numeroPedido || p.id.slice(-6).toUpperCase()}</p>
       <p style="font-size:13px;color:var(--text-500);margin-top:2px">${fmtData(p.serverTime || p.createdAt)}</p>
       ${p.cliente ? `<p style="font-size:16px;font-weight:700;margin-top:10px">👤 ${p.cliente}</p>` : ""}
@@ -121,8 +121,7 @@ function detalhe(id) {
       <p style="font-size:13px;color:var(--text-500);margin-top:6px">💳 ${p.pagamento || ""}</p>
       ${p.cartao1 ? `<p style="font-size:12px;color:var(--text-500)">Cartão 1: ${fmtR(p.cartao1)} · Cartão 2: ${fmtR(p.cartao2 || 0)}</p>` : ""}
       ${p.lucro ? `<p style="font-size:13px;color:var(--success);margin-top:3px">📈 Lucro: ${fmtR(p.lucro)}</p>` : ""}`;
-      document.getElementById("btnDetImprimir").onclick = () =>
-        imprimirCupom(p);
-      openModal("modalDet");
-    });
+    document.getElementById("btnDetImprimir").onclick = () => imprimirCupom(p);
+    openModal("modalDet");
+  });
 }

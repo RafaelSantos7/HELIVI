@@ -8,7 +8,7 @@ let editDocId = null,
 document.addEventListener("DOMContentLoaded", () => {
   requireAuth((user, perfil, ownerUid) => {
     // Garante ownerUid válido — fallback para uid do próprio usuário
-    const oUid = ownerUid || window.OWNER_UID || user.uid;
+    const oUid = ownerUid || window.OWNER_UID || user.id || user.uid;
     window.OWNER_UID = oUid;
     setupTopbar(user, perfil, oUid);
     carregarUsuarios(oUid);
@@ -166,7 +166,7 @@ function bindUI() {
         msg.includes("Failed to fetch")
       )
         toast(
-          "Erro de conexão. Verifique se o deploy das Functions foi feito.",
+          "Erro de conexão. Verifique se a API do HELIVI está em execução.",
           "error",
         );
       else if (msg.includes("invalid-argument"))
@@ -209,7 +209,9 @@ async function excluirColab(docId, uid, nome) {
   if (!ok) return;
   try {
     const r = await data.usuarios.excluirColaborador({ docId, uid });
-    cacheUsuarios = cacheUsuarios.filter((u) => u.docId !== docId && u.uid !== uid);
+    cacheUsuarios = cacheUsuarios.filter(
+      (u) => u.docId !== docId && u.uid !== uid,
+    );
     renderUsuarios(cacheUsuarios);
     toast(r?.mensagem || "Colaborador removido.", "info");
   } catch (err) {
