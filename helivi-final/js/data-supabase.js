@@ -228,7 +228,7 @@ window.__heliviCreateSupabaseData = function createSupabaseData() {
 
       const { error: perfilError } = await sb.from("usuarios").insert({
         id: user.id,
-        owner_uid: user.id,
+        owner_uid: cfg.establishmentOwnerUid,
         nome,
         email,
         role: "admin",
