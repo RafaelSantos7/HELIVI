@@ -204,16 +204,44 @@ window.__heliviCreateSupabaseData = function createSupabaseData() {
       return data;
     },
     async createUser(email, senha) {
+      const nome = email.split("@")[0];
+
       const { data, error } = await sb.auth.signUp({
         email,
         password: senha,
-        options: { data: { nome: email.split("@")[0] } },
+        options: {
+          data: { nome },
+        },
       });
+
       if (error) {
         const e = new Error(error.message);
         e.code = error.code || "auth/email-already-in-use";
         throw e;
       }
+
+      const user = data?.user;
+
+      if (!user) {
+        throw new Error("Não foi possível criar a conta.");
+      }
+
+      const { error: perfilError } = await sb.from("usuarios").insert({
+        id: user.id,
+        owner_uid: user.id,
+        nome,
+        email,
+        role: "admin",
+        ativo: true,
+      });
+
+      if (perfilError) {
+        throw new Error(
+          perfilError.message ||
+            "A conta foi criada, mas o perfil não foi cadastrado.",
+        );
+      }
+
       return data;
     },
     async signOut() {
@@ -365,10 +393,39 @@ window.__heliviCreateSupabaseData = function createSupabaseData() {
       return (data || []).map(rowUsuario);
     },
     async criarColaborador(payload) {
-      return apiFetch("/colaboradores", {
-        method: "POST",
-        body: JSON.stringify(payload),
+      const { data: sessao } = await sb.auth.getSession();
+      const usuarioLogado = sessao?.session?.user;
+
+      if (!usuarioLogado) {
+        throw new Error("Usuário não autenticado.");
+      }
+
+      const perfilLogado = await usuariosApi.buscarPerfilPorUid(
+        usuarioLogado.id,
+      );
+
+      const ownerUid =
+        perfilLogado?.ownerUid || window.OWNER_UID || usuarioLogado.id;
+
+      const { data, error } = await sb.functions.invoke("criar-colaborador", {
+        body: {
+          nome: payload.nome,
+          email: payload.email,
+          senha: payload.senha,
+          role: payload.role,
+          owner_uid: ownerUid,
+        },
       });
+
+      if (error) {
+        throw new Error(error.message || "Erro ao criar colaborador.");
+      }
+
+      if (data?.sucesso === false) {
+        throw new Error(data.mensagem || "Erro ao criar colaborador.");
+      }
+
+      return data;
     },
     async editarColaborador(payload) {
       const { data, error } = await sb.functions.invoke(
@@ -394,7 +451,18 @@ window.__heliviCreateSupabaseData = function createSupabaseData() {
     },
     async excluirColaborador(payload) {
       const id = payload.uid || payload.docId;
-      return apiFetch("/colaboradores/" + id, { method: "DELETE" });
+
+      const { data, error } = await sb.functions.invoke("excluir-colaborador", {
+        body: { uid: id },
+      });
+
+      if (error) throw new Error(error.message);
+
+      if (!data?.sucesso) {
+        throw new Error(data?.mensagem);
+      }
+
+      return data;
     },
   };
 

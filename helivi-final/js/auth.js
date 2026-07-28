@@ -46,8 +46,33 @@ function requireAuth(callback) {
     bootstrappedForUid = user.id;
     window.HELIVI_CURRENT_USER = user;
 
-    const { perfil, ownerUid } = await buscarPerfilEOwner(user.id);
-    const safeOwnerUid = ownerUid || user.id;
+    let perfil;
+    let ownerUid;
+
+    try {
+      const dadosPerfil = await buscarPerfilEOwner(user.id);
+
+      perfil = dadosPerfil.perfil;
+      ownerUid = dadosPerfil.ownerUid;
+    } catch (error) {
+      toast(
+        error.message || "Usuário sem vínculo com o estabelecimento.",
+        "error",
+      );
+
+      await window.HELIVI.auth.sair();
+
+      window.HELIVI_CURRENT_USER = null;
+      window.OWNER_UID = null;
+
+      setTimeout(() => {
+        location.href = "index.html";
+      }, 1500);
+
+      return;
+    }
+
+    const safeOwnerUid = ownerUid;
 
     window.PERFIL_ATUAL = perfil;
     window.OWNER_UID = safeOwnerUid;
@@ -111,25 +136,28 @@ async function buscarPerfilEOwner(uid) {
   try {
     const row = await data.usuarios.buscarPerfilPorUid(uid);
 
-    if (row) {
-      return {
-        perfil: row.role || row.perfil || "atendente",
-        ownerUid:
-          row.ownerUid || row.owner_uid || row.ownerId || row.owner_id || uid,
-      };
+    if (!row) {
+      throw new Error(
+        "Este usuário não está vinculado a nenhum estabelecimento.",
+      );
+    }
+
+    const perfil = row.role || row.perfil || "atendente";
+
+    const ownerUid =
+      row.ownerUid || row.owner_uid || row.ownerId || row.owner_id;
+
+    if (!ownerUid) {
+      throw new Error("O usuário não possui owner_uid configurado.");
     }
 
     return {
-      perfil: "admin",
-      ownerUid: uid,
+      perfil,
+      ownerUid,
     };
   } catch (error) {
     console.error("Erro ao buscar perfil do usuário:", error);
-
-    return {
-      perfil: "admin",
-      ownerUid: uid,
-    };
+    throw error;
   }
 }
 
