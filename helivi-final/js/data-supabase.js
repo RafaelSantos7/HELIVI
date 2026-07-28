@@ -226,14 +226,19 @@ window.__heliviCreateSupabaseData = function createSupabaseData() {
         throw new Error("Não foi possível criar a conta.");
       }
 
-      const { error: perfilError } = await sb.from("usuarios").insert({
-        id: user.id,
-        owner_uid: cfg.establishmentOwnerUid,
-        nome,
-        email,
-        role: "admin",
-        ativo: true,
-      });
+      const { error: perfilError } = await sb.from("usuarios").upsert(
+        {
+          id: user.id,
+          owner_uid: cfg.establishmentOwnerUid,
+          nome,
+          email,
+          role: "admin",
+          ativo: true,
+        },
+        {
+          onConflict: "id",
+        },
+      );
 
       if (perfilError) {
         throw new Error(
