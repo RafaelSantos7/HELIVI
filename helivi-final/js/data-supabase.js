@@ -210,7 +210,8 @@ window.__heliviCreateSupabaseData = function createSupabaseData() {
         email,
         password: senha,
         options: {
-          data: { nome },
+          nome,
+          owner_uid: cfg.establishmentOwnerUid,
         },
       });
 
